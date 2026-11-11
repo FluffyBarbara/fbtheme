@@ -47,8 +47,8 @@ FILTER_FIXES = {
 HEADER = """/**
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
- * @version 1.0.0
- * @description Чёрно-белая версия TokyoMidnight: глубокий чёрный фон, серебристые акценты и мигающая белая точка у каналов.
+ * @version 1.1.0
+ * @description Чёрно-белая версия TokyoMidnight: глубокий чёрный фон, серебристые акценты, мигающая белая точка у каналов и плавные анимации.
  * @source https://github.com/fluffybarbara/fbtheme
  */
 
