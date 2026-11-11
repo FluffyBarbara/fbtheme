@@ -1,0 +1,783 @@
+/**
+ * @name FluffyBarbara
+ * @author FluffyBarbara
+ * @description Нежная стеклянная тема: анимированное розово-лавандовое сияние, полупрозрачные панели с размытием, градиентные акценты и плавные анимации.
+ * @version 1.0.0
+ * @source https://github.com/fluffybarbara/fbtheme
+ * @website https://github.com/fluffybarbara/fbtheme
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap");
+
+/* ============================================================
+   НАСТРОЙКИ — меняй значения здесь
+   ============================================================ */
+:root {
+  /* Акцентные цвета (градиент идёт от 1 к 3) */
+  --fb-accent-1: #ff7ac6;          /* розовый   */
+  --fb-accent-2: #b48cff;          /* лавандовый */
+  --fb-accent-3: #7cc8ff;          /* небесный  */
+
+  /* Своя картинка на фон: url("https://...") — или none для сияния */
+  --fb-background-image: none;
+  --fb-background-dim: 0.35;       /* затемнение картинки: 0 … 1 */
+
+  /* Базовый тон фона (RGB без rgb()) */
+  --fb-base-rgb: 18, 12, 34;
+
+  /* Стекло */
+  --fb-blur: 18px;                 /* сила размытия, 0px = выкл. */
+  --fb-glass: 0.38;                /* прозрачность панелей 0 … 1 */
+  --fb-radius: 16px;               /* скругление панелей */
+
+  /* Анимации фона: running / paused */
+  --fb-animation: running;
+
+  /* Шрифт */
+  --fb-font: "Nunito", "gg sans", "Noto Sans", sans-serif;
+
+  /* ---- дальше трогать не обязательно ---- */
+  --fb-gradient: linear-gradient(135deg, var(--fb-accent-1), var(--fb-accent-2) 50%, var(--fb-accent-3));
+  --fb-gradient-soft: linear-gradient(135deg,
+    color-mix(in srgb, var(--fb-accent-1) 28%, transparent),
+    color-mix(in srgb, var(--fb-accent-2) 22%, transparent) 50%,
+    color-mix(in srgb, var(--fb-accent-3) 16%, transparent));
+  --fb-panel: rgba(var(--fb-base-rgb), var(--fb-glass));
+  --fb-panel-strong: rgba(var(--fb-base-rgb), calc(var(--fb-glass) + 0.4));
+  --fb-panel-light: rgba(var(--fb-base-rgb), calc(var(--fb-glass) * 0.5));
+  --fb-border: rgba(255, 255, 255, 0.08);
+  --fb-border-bright: rgba(255, 255, 255, 0.16);
+  --fb-glow: 0 0 18px color-mix(in srgb, var(--fb-accent-2) 55%, transparent);
+  --fb-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  --fb-text: #f1ebff;
+  --fb-text-muted: #b6a9d6;
+  --fb-text-faint: #8a7eaa;
+  --fb-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ============================================================
+   ПЕРЕМЕННЫЕ DISCORD (старый и обновлённый интерфейс)
+   ============================================================ */
+:root,
+.theme-dark,
+.theme-darker,
+.theme-midnight,
+.theme-light,
+.visual-refresh {
+  /* фон */
+  --background-primary: var(--fb-panel-light) !important;
+  --background-secondary: var(--fb-panel) !important;
+  --background-secondary-alt: var(--fb-panel) !important;
+  --background-tertiary: transparent !important;
+  --background-accent: color-mix(in srgb, var(--fb-accent-2) 35%, transparent) !important;
+  --background-floating: var(--fb-panel-strong) !important;
+  --background-nested-floating: var(--fb-panel-strong) !important;
+  --background-mobile-primary: var(--fb-panel-light) !important;
+  --background-mobile-secondary: var(--fb-panel) !important;
+  --background-message-hover: rgba(255, 255, 255, 0.035) !important;
+  --background-modifier-hover: rgba(255, 255, 255, 0.06) !important;
+  --background-modifier-active: rgba(255, 255, 255, 0.09) !important;
+  --background-modifier-selected: color-mix(in srgb, var(--fb-accent-2) 22%, transparent) !important;
+  --background-modifier-accent: var(--fb-border) !important;
+  --background-mentioned: color-mix(in srgb, var(--fb-accent-1) 10%, transparent) !important;
+  --background-mentioned-hover: color-mix(in srgb, var(--fb-accent-1) 15%, transparent) !important;
+  --home-background: transparent !important;
+  --chat-background: var(--fb-panel-light) !important;
+  --chat-background-default: var(--fb-panel-light) !important;
+  --chat-border: var(--fb-border) !important;
+  --channeltextarea-background: rgba(255, 255, 255, 0.05) !important;
+  --modal-background: var(--fb-panel-strong) !important;
+  --modal-footer-background: rgba(0, 0, 0, 0.18) !important;
+  --input-background: rgba(0, 0, 0, 0.25) !important;
+  --deprecated-card-bg: var(--fb-panel) !important;
+  --deprecated-card-editable-bg: var(--fb-panel) !important;
+
+  --bg-base-primary: var(--fb-panel-light) !important;
+  --bg-base-secondary: var(--fb-panel) !important;
+  --bg-base-tertiary: transparent !important;
+  --bg-overlay-chat: var(--fb-panel-light) !important;
+  --bg-overlay-app-frame: transparent !important;
+  --bg-surface-overlay: var(--fb-panel-strong) !important;
+  --bg-surface-raised: var(--fb-panel-strong) !important;
+  --bg-mod-faint: rgba(255, 255, 255, 0.04) !important;
+  --bg-mod-subtle: rgba(255, 255, 255, 0.07) !important;
+  --bg-mod-strong: rgba(255, 255, 255, 0.12) !important;
+  --bg-brand: var(--fb-accent-2) !important;
+
+  --app-frame-background: transparent !important;
+  --app-background-frame: transparent !important;
+  --background-base-lowest: transparent !important;
+  --background-base-lower: var(--fb-panel) !important;
+  --background-base-low: var(--fb-panel-light) !important;
+  --background-surface-high: var(--fb-panel-strong) !important;
+  --background-surface-higher: var(--fb-panel-strong) !important;
+  --background-surface-highest: var(--fb-panel-strong) !important;
+  --background-mod-subtle: rgba(255, 255, 255, 0.06) !important;
+  --background-mod-normal: rgba(255, 255, 255, 0.09) !important;
+  --background-mod-strong: rgba(255, 255, 255, 0.13) !important;
+  --interactive-background-hover: rgba(255, 255, 255, 0.06) !important;
+  --interactive-background-active: rgba(255, 255, 255, 0.09) !important;
+  --interactive-background-selected: color-mix(in srgb, var(--fb-accent-2) 22%, transparent) !important;
+  --message-background-hover: rgba(255, 255, 255, 0.035) !important;
+  --message-mentioned-background-default: color-mix(in srgb, var(--fb-accent-1) 10%, transparent) !important;
+  --message-mentioned-background-hover: color-mix(in srgb, var(--fb-accent-1) 15%, transparent) !important;
+  --input-background-default: rgba(0, 0, 0, 0.25) !important;
+
+  /* границы */
+  --border-faint: var(--fb-border) !important;
+  --border-subtle: var(--fb-border) !important;
+  --border-normal: var(--fb-border-bright) !important;
+  --border-strong: var(--fb-border-bright) !important;
+  --app-border-frame: var(--fb-border) !important;
+
+  /* текст */
+  --text-normal: var(--fb-text) !important;
+  --text-default: var(--fb-text) !important;
+  --text-strong: #ffffff !important;
+  --text-muted: var(--fb-text-muted) !important;
+  --text-subtle: var(--fb-text-muted) !important;
+  --text-link: var(--fb-accent-3) !important;
+  --text-brand: var(--fb-accent-1) !important;
+  --header-primary: #ffffff !important;
+  --header-secondary: var(--fb-text-muted) !important;
+  --channels-default: var(--fb-text-faint) !important;
+  --channel-icon: var(--fb-text-faint) !important;
+
+  /* интерактив */
+  --interactive-normal: var(--fb-text-muted) !important;
+  --interactive-hover: var(--fb-text) !important;
+  --interactive-active: #ffffff !important;
+  --interactive-muted: color-mix(in srgb, var(--fb-text-faint) 55%, transparent) !important;
+  --interactive-text-default: var(--fb-text-muted) !important;
+  --interactive-text-hover: var(--fb-text) !important;
+  --interactive-text-active: #ffffff !important;
+  --icon-default: var(--fb-text-muted) !important;
+  --icon-strong: #ffffff !important;
+
+  /* бренд */
+  --brand-experiment: var(--fb-accent-2) !important;
+  --brand-500: var(--fb-accent-2) !important;
+  --brand-560: color-mix(in srgb, var(--fb-accent-2) 85%, black) !important;
+  --brand-600: color-mix(in srgb, var(--fb-accent-2) 75%, black) !important;
+  --button-filled-brand-background: var(--fb-accent-2) !important;
+  --button-filled-brand-background-hover: color-mix(in srgb, var(--fb-accent-2) 85%, white) !important;
+  --control-brand-foreground: var(--fb-accent-1) !important;
+  --control-brand-foreground-new: var(--fb-accent-1) !important;
+
+  /* упоминания */
+  --mention-foreground: #ffffff !important;
+  --mention-background: color-mix(in srgb, var(--fb-accent-1) 30%, transparent) !important;
+  --info-warning-foreground: var(--fb-accent-1) !important;
+
+  /* скроллбары */
+  --scrollbar-thin-thumb: color-mix(in srgb, var(--fb-accent-2) 55%, transparent) !important;
+  --scrollbar-thin-track: transparent !important;
+  --scrollbar-auto-thumb: color-mix(in srgb, var(--fb-accent-2) 55%, transparent) !important;
+  --scrollbar-auto-track: transparent !important;
+  --scrollbar-auto-scrollbar-color-thumb: color-mix(in srgb, var(--fb-accent-2) 55%, transparent) !important;
+  --scrollbar-auto-scrollbar-color-track: transparent !important;
+
+  /* шрифты */
+  --font-primary: var(--fb-font) !important;
+  --font-display: var(--fb-font) !important;
+  --font-headline: var(--fb-font) !important;
+}
+
+/* ============================================================
+   ФОН — анимированное сияние
+   ============================================================ */
+html,
+body {
+  background: rgb(var(--fb-base-rgb)) !important;
+}
+
+#app-mount {
+  background:
+    linear-gradient(rgba(var(--fb-base-rgb), var(--fb-background-dim)), rgba(var(--fb-base-rgb), var(--fb-background-dim))),
+    var(--fb-background-image) center / cover no-repeat,
+    rgb(var(--fb-base-rgb)) !important;
+  font-family: var(--fb-font);
+  isolation: isolate;
+}
+
+#app-mount::before,
+#app-mount::after {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+  animation-play-state: var(--fb-animation);
+}
+
+#app-mount::before {
+  background:
+    radial-gradient(38% 32% at 18% 22%, color-mix(in srgb, var(--fb-accent-1) 42%, transparent), transparent 70%),
+    radial-gradient(34% 30% at 82% 28%, color-mix(in srgb, var(--fb-accent-3) 34%, transparent), transparent 70%),
+    radial-gradient(40% 36% at 55% 85%, color-mix(in srgb, var(--fb-accent-2) 42%, transparent), transparent 70%);
+  animation: fb-aurora 26s ease-in-out infinite alternate;
+}
+
+#app-mount::after {
+  background:
+    radial-gradient(28% 26% at 70% 60%, color-mix(in srgb, var(--fb-accent-1) 26%, transparent), transparent 70%),
+    radial-gradient(30% 28% at 25% 75%, color-mix(in srgb, var(--fb-accent-3) 22%, transparent), transparent 70%);
+  animation: fb-aurora-2 34s ease-in-out infinite alternate;
+  opacity: 0.9;
+}
+
+@keyframes fb-aurora {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50%  { transform: translate3d(4%, -3%, 0) rotate(6deg) scale(1.08); }
+  100% { transform: translate3d(-3%, 4%, 0) rotate(-4deg) scale(1.02); }
+}
+
+@keyframes fb-aurora-2 {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  100% { transform: translate3d(-5%, -4%, 0) rotate(-10deg) scale(1.1); }
+}
+
+/* фоновые слои Discord делаем прозрачными, чтобы было видно сияние */
+[class^="bg_"],
+[class*=" bg_"],
+[class*="layers_"],
+[class^="layer_"],
+[class*=" layer_"],
+[class*="appAsidePanelWrapper_"],
+[class*="notAppAsidePanel_"],
+[class^="app_"],
+[class*=" app_"],
+[class^="base_"],
+[class*=" base_"] {
+  background: transparent !important;
+}
+
+/* ============================================================
+   ОБЩЕЕ
+   ============================================================ */
+::selection {
+  background: color-mix(in srgb, var(--fb-accent-1) 45%, transparent);
+  color: #fff;
+}
+
+a,
+[class*="anchor_"] {
+  transition: color 0.2s var(--fb-ease), text-shadow 0.2s var(--fb-ease);
+}
+
+a:hover {
+  text-shadow: 0 0 10px color-mix(in srgb, var(--fb-accent-3) 60%, transparent);
+}
+
+/* скроллбары (запасной вариант для webkit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fb-gradient) !important;
+  border-radius: 999px !important;
+  border: 2px solid transparent !important;
+  background-clip: padding-box !important;
+}
+
+/* ============================================================
+   СПИСОК СЕРВЕРОВ
+   ============================================================ */
+nav[class*="guilds_"] {
+  background: transparent !important;
+}
+
+[class*="blobContainer_"] {
+  transition: transform 0.35s var(--fb-ease), filter 0.35s var(--fb-ease);
+}
+
+[class*="blobContainer_"]:hover {
+  transform: translateY(-2px) scale(1.06);
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--fb-accent-1) 45%, transparent));
+}
+
+[class*="blobContainer_"][class*="selected_"] {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--fb-accent-2) 70%, transparent));
+}
+
+/* белая «таблетка» слева от выбранного сервера */
+nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
+  background: var(--fb-gradient) !important;
+  box-shadow: var(--fb-glow);
+}
+
+/* разделитель */
+nav[class*="guilds_"] [class*="guildSeparator_"] {
+  background: var(--fb-gradient) !important;
+  opacity: 0.5;
+  height: 2px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   БОКОВАЯ ПАНЕЛЬ (каналы / ЛС)
+   ============================================================ */
+[class^="sidebar_"],
+[class*=" sidebar_"] {
+  background: var(--fb-panel) !important;
+  backdrop-filter: blur(var(--fb-blur)) saturate(140%);
+  border-radius: var(--fb-radius) 0 0 0;
+  border-top: 1px solid var(--fb-border);
+  border-left: 1px solid var(--fb-border);
+  overflow: hidden;
+}
+
+/* шапка сервера */
+[class^="sidebar_"] header,
+[class*=" sidebar_"] header {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--fb-border);
+}
+
+[class^="sidebar_"] header h2,
+[class*=" sidebar_"] header h2 {
+  background: var(--fb-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  font-weight: 800;
+}
+
+/* каналы */
+[class*="containerDefault_"] [class*="link_"],
+[class*="channel_"] [class*="interactive_"] {
+  border-radius: 10px !important;
+  transition: background 0.25s var(--fb-ease), transform 0.25s var(--fb-ease), padding 0.25s var(--fb-ease);
+}
+
+[class*="containerDefault_"] [class*="link_"]:hover {
+  transform: translateX(3px);
+}
+
+[class*="modeSelected_"] [class*="link_"],
+[class*="interactiveSelected_"] {
+  background: var(--fb-gradient-soft) !important;
+  box-shadow: inset 3px 0 0 var(--fb-accent-1), 0 4px 18px color-mix(in srgb, var(--fb-accent-2) 18%, transparent);
+}
+
+[class*="modeSelected_"] [class*="name_"],
+[class*="modeUnread_"] [class*="name_"] {
+  color: #fff !important;
+}
+
+/* заголовки категорий */
+[class*="containerDefault_"] h3,
+[class*="mainContent_"] h3[class*="name_"] {
+  letter-spacing: 0.08em;
+  font-weight: 800 !important;
+}
+
+/* панель пользователя внизу */
+section[class*="panels_"] {
+  background: rgba(var(--fb-base-rgb), 0.45) !important;
+  backdrop-filter: blur(var(--fb-blur));
+  border-radius: 14px;
+  border: 1px solid var(--fb-border);
+  box-shadow: var(--fb-shadow);
+}
+
+/* ============================================================
+   ЧАТ
+   ============================================================ */
+[class^="chat_"],
+[class*=" chat_"],
+[class*="chatContent_"],
+[class*="messagesWrapper_"],
+[class^="page_"],
+[class*=" page_"],
+[class*="container_"][class*="themed_"] {
+  background: transparent !important;
+}
+
+[class^="page_"],
+[class*=" page_"] {
+  background: var(--fb-panel-light) !important;
+  backdrop-filter: blur(calc(var(--fb-blur) * 0.6));
+  border-top: 1px solid var(--fb-border);
+}
+
+/* шапка канала */
+section[class*="title_"] {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-bottom: 1px solid var(--fb-border) !important;
+}
+
+/* сообщения */
+li[id^="chat-messages-"] > div {
+  border-radius: 12px;
+  margin-inline: 8px;
+  transition: background 0.25s var(--fb-ease), box-shadow 0.25s var(--fb-ease);
+}
+
+li[id^="chat-messages-"] > div:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: inset 0 0 0 1px var(--fb-border);
+}
+
+li[id^="chat-messages-"] {
+  animation: fb-message-in 0.45s var(--fb-ease) both;
+}
+
+@keyframes fb-message-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* аватарки в чате */
+li[id^="chat-messages-"] img[class*="avatar_"] {
+  transition: box-shadow 0.3s var(--fb-ease), transform 0.3s var(--fb-ease);
+}
+
+li[id^="chat-messages-"] > div:hover img[class*="avatar_"] {
+  transform: scale(1.06);
+  box-shadow:
+    0 0 0 2px rgba(var(--fb-base-rgb), 1),
+    0 0 0 4px var(--fb-accent-2),
+    var(--fb-glow);
+}
+
+/* сообщение с упоминанием тебя */
+[class*="mentioned_"] {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--fb-accent-1) 16%, transparent),
+    transparent 70%) !important;
+}
+
+[class*="mentioned_"]::before {
+  background: var(--fb-gradient) !important;
+  width: 3px !important;
+  border-radius: 3px;
+  box-shadow: var(--fb-glow);
+}
+
+/* @упоминания и #каналы в тексте */
+[class*="mention"][class*="interactive"],
+span[class*="mention"] {
+  border-radius: 6px !important;
+  padding: 0 4px !important;
+  transition: background 0.2s var(--fb-ease), box-shadow 0.2s var(--fb-ease);
+}
+
+span[class*="mention"]:hover {
+  background: var(--fb-gradient) !important;
+  color: #fff !important;
+  box-shadow: var(--fb-glow);
+}
+
+/* разделитель новых сообщений */
+[class*="divider_"][class*="isUnread_"] {
+  border-color: var(--fb-accent-1) !important;
+}
+[class*="divider_"][class*="isUnread_"] [class*="unreadPill_"] {
+  background: var(--fb-gradient) !important;
+}
+
+/* ============================================================
+   ПОЛЕ ВВОДА
+   ============================================================ */
+form [class*="channelTextArea_"] > [class*="scrollableContainer_"] {
+  background: rgba(var(--fb-base-rgb), 0.55) !important;
+  backdrop-filter: blur(var(--fb-blur));
+  border-radius: 18px !important;
+  border: 1px solid var(--fb-border-bright);
+  transition: border-color 0.3s var(--fb-ease), box-shadow 0.3s var(--fb-ease);
+}
+
+form [class*="channelTextArea_"]:focus-within > [class*="scrollableContainer_"] {
+  border-color: color-mix(in srgb, var(--fb-accent-1) 70%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--fb-accent-1) 18%, transparent),
+    0 8px 30px color-mix(in srgb, var(--fb-accent-2) 25%, transparent);
+}
+
+[class*="channelTextArea_"] [class*="buttons_"] button,
+[class*="channelTextArea_"] [class*="attachButton_"] {
+  transition: transform 0.25s var(--fb-ease), color 0.25s var(--fb-ease);
+}
+
+[class*="channelTextArea_"] [class*="buttons_"] button:hover {
+  transform: scale(1.15) rotate(-6deg);
+  color: var(--fb-accent-1) !important;
+}
+
+/* «печатает…» */
+[class*="typing_"] {
+  background: transparent !important;
+}
+
+/* ============================================================
+   СПИСОК УЧАСТНИКОВ
+   ============================================================ */
+[class*="membersWrap_"],
+[class^="members_"],
+[class*=" members_"],
+[class*="container_"] > [class*="members_"] {
+  background: transparent !important;
+}
+
+[class*="membersWrap_"] {
+  background: var(--fb-panel) !important;
+  backdrop-filter: blur(var(--fb-blur));
+  border-left: 1px solid var(--fb-border);
+}
+
+[class*="member_"] > [class*="childContainer_"],
+[class*="member_"] [class*="layout_"] {
+  border-radius: 10px !important;
+  transition: background 0.2s var(--fb-ease), transform 0.25s var(--fb-ease);
+}
+
+[class*="member_"]:hover [class*="layout_"] {
+  transform: translateX(3px);
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+h3[class*="membersGroup_"] {
+  letter-spacing: 0.08em;
+  font-weight: 800 !important;
+}
+
+/* ============================================================
+   КНОПКИ, БЕЙДЖИ, РЕАКЦИИ
+   ============================================================ */
+button[class*="colorBrand_"],
+button[class*="lookFilled_"][class*="colorBrand_"],
+[class*="button_"][class*="primary_"]:not([class*="secondary"]) {
+  background: var(--fb-gradient) !important;
+  background-size: 200% 200% !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--fb-accent-2) 35%, transparent);
+  transition: background-position 0.5s var(--fb-ease), box-shadow 0.3s var(--fb-ease), transform 0.2s var(--fb-ease) !important;
+}
+
+button[class*="colorBrand_"]:hover,
+[class*="button_"][class*="primary_"]:not([class*="secondary"]):hover {
+  background-position: 100% 50% !important;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--fb-accent-1) 50%, transparent);
+  transform: translateY(-1px);
+}
+
+button[class*="colorBrand_"]:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* красные кружки с числом непрочитанного */
+[class*="numberBadge_"],
+[class*="textBadge_"] {
+  background: var(--fb-gradient) !important;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--fb-accent-1) 60%, transparent);
+  font-weight: 800 !important;
+}
+
+/* реакции */
+[class*="reaction_"] {
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid var(--fb-border) !important;
+  transition: transform 0.2s var(--fb-ease), background 0.2s var(--fb-ease), border-color 0.2s var(--fb-ease);
+}
+
+[class*="reaction_"]:hover {
+  transform: translateY(-2px);
+  border-color: var(--fb-border-bright) !important;
+}
+
+[class*="reaction_"][class*="reactionMe_"] {
+  background: var(--fb-gradient-soft) !important;
+  border-color: color-mix(in srgb, var(--fb-accent-1) 70%, transparent) !important;
+}
+
+/* ============================================================
+   ВСПЛЫВАШКИ, МЕНЮ, ПОДСКАЗКИ, МОДАЛКИ
+   ============================================================ */
+[role="menu"],
+[class*="userPopoutOuter_"],
+[class*="userProfileOuter_"],
+[class*="popout_"][role="dialog"],
+[class*="autocomplete_"],
+[class*="emojiPicker_"],
+[class*="contentWrapper_"][class*="expressionPicker"] {
+  background: var(--fb-panel-strong) !important;
+  backdrop-filter: blur(calc(var(--fb-blur) + 8px)) saturate(160%);
+  border: 1px solid var(--fb-border-bright) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--fb-shadow), 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  animation: fb-pop-in 0.22s var(--fb-ease) both;
+}
+
+@keyframes fb-pop-in {
+  from { opacity: 0; transform: translateY(4px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+[role="menu"] [role="menuitem"],
+[role="menu"] [role="menuitemcheckbox"],
+[role="menu"] [role="menuitemradio"] {
+  border-radius: 8px !important;
+  transition: background 0.15s var(--fb-ease);
+}
+
+[role="menu"] [class*="focused_"]:not([class*="colorDanger_"]) {
+  background: var(--fb-gradient) !important;
+  color: #fff !important;
+}
+
+/* подсказки */
+[class^="tooltip_"],
+[class*=" tooltip_"] {
+  background: var(--fb-panel-strong) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--fb-border-bright);
+  border-radius: 10px !important;
+  box-shadow: var(--fb-shadow);
+  font-weight: 700;
+}
+
+[class*="tooltipPointer_"] {
+  display: none !important;
+}
+
+/* модальные окна */
+[class*="backdrop_"] {
+  backdrop-filter: blur(6px);
+  background: rgba(var(--fb-base-rgb), 0.55) !important;
+}
+
+[class*="focusLock_"] > [class*="root_"],
+[role="dialog"][class*="root_"] {
+  background: var(--fb-panel-strong) !important;
+  backdrop-filter: blur(calc(var(--fb-blur) + 10px));
+  border: 1px solid var(--fb-border-bright);
+  border-radius: 18px !important;
+  box-shadow: var(--fb-shadow);
+}
+
+/* настройки */
+[class*="standardSidebarView_"] {
+  background: rgba(var(--fb-base-rgb), 0.7) !important;
+  backdrop-filter: blur(calc(var(--fb-blur) + 10px));
+}
+
+[class*="standardSidebarView_"] [class*="sidebarRegion_"],
+[class*="standardSidebarView_"] [class*="contentRegion_"] {
+  background: transparent !important;
+}
+
+[class*="standardSidebarView_"] [class*="sidebarRegion_"] {
+  border-right: 1px solid var(--fb-border);
+}
+
+[class*="side_"] [class*="item_"][class*="selected_"] {
+  background: var(--fb-gradient-soft) !important;
+  box-shadow: inset 3px 0 0 var(--fb-accent-1);
+  color: #fff !important;
+}
+
+/* поля ввода */
+input[class*="input_"],
+[class*="inputWrapper_"] input,
+textarea[class*="textArea_"] {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid var(--fb-border-bright) !important;
+  border-radius: 10px !important;
+  transition: border-color 0.2s var(--fb-ease), box-shadow 0.2s var(--fb-ease);
+}
+
+input[class*="input_"]:focus,
+[class*="inputWrapper_"] input:focus {
+  border-color: var(--fb-accent-1) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--fb-accent-1) 20%, transparent);
+}
+
+/* переключатели */
+[class*="container_"][class*="checked_"]:has(> input[type="checkbox"]) {
+  background: var(--fb-gradient) !important;
+}
+
+/* ============================================================
+   ЭМБЕДЫ, КОД, ЦИТАТЫ
+   ============================================================ */
+article[class*="embedFull_"],
+[class*="embedWrapper_"] {
+  background: rgba(var(--fb-base-rgb), 0.45) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px !important;
+  border-top: 1px solid var(--fb-border);
+  border-right: 1px solid var(--fb-border);
+  border-bottom: 1px solid var(--fb-border);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
+
+[class*="markup_"] pre code,
+code.hljs {
+  background: rgba(10, 6, 22, 0.6) !important;
+  border: 1px solid var(--fb-border-bright) !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+[class*="markup_"] code.inline {
+  background: color-mix(in srgb, var(--fb-accent-2) 18%, transparent) !important;
+  color: #ffd9f0 !important;
+  border-radius: 6px;
+  padding: 0.1em 0.4em;
+}
+
+[class*="blockquoteDivider_"] {
+  background: var(--fb-gradient) !important;
+  border-radius: 4px;
+}
+
+/* код: подсветка синтаксиса */
+.hljs-keyword,
+.hljs-selector-tag { color: var(--fb-accent-1) !important; }
+.hljs-string,
+.hljs-attr { color: #a8f0c6 !important; }
+.hljs-title,
+.hljs-function { color: var(--fb-accent-3) !important; }
+.hljs-number,
+.hljs-literal { color: #ffc58a !important; }
+.hljs-comment { color: var(--fb-text-faint) !important; font-style: italic; }
+.hljs-built_in,
+.hljs-type { color: var(--fb-accent-2) !important; }
+
+/* ============================================================
+   СТАТУСЫ
+   ============================================================ */
+rect[fill="#23a55a"],
+rect[fill="var(--status-positive)"] { fill: #6ef0b0 !important; }
+rect[fill="#f0b232"],
+rect[fill="var(--status-warning)"] { fill: #ffd27a !important; }
+rect[fill="#f23f43"],
+rect[fill="var(--status-danger)"] { fill: #ff6b9a !important; }
+
+/* ============================================================
+   ДОСТУПНОСТЬ — меньше анимаций, если так задано в системе
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  #app-mount::before,
+  #app-mount::after,
+  li[id^="chat-messages-"],
+  [role="menu"] {
+    animation: none !important;
+  }
+}
+
+.reduce-motion #app-mount::before,
+.reduce-motion #app-mount::after,
+.reduce-motion li[id^="chat-messages-"] {
+  animation: none !important;
+}
