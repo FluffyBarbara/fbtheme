@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.3.0
+ * @version 1.4.0
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.3.0
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.4.0
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5308,8 +5308,7 @@ li[id^="chat-messages-"] > div:hover img[class*="avatar_"] {
 }
 
 /* смена канала — содержимое мягко проявляется */
-main[class*="chatContent_"],
-[class*="membersWrap_"] [class*="members_"] {
+main[class*="chatContent_"] {
   animation: tmbFade 0.4s ease backwards;
 }
 
@@ -5366,6 +5365,130 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
   transition: height 0.35s var(--tmb-spring), transform 0.35s var(--tmb-spring) !important;
 }
+
+/* ============================================================
+   СПИСОК УЧАСТНИКОВ — ВЫЕЗД СПРАВА
+   ============================================================ */
+
+@keyframes tmbSlideFromRight {
+  from { opacity: 0; transform: translateX(28px); filter: blur(6px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+
+/* панель: ширина и мин. ширина едут вместе, без рывка */
+[class*="membersWrap_"] {
+  position: relative;
+  border-left-color: rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  transition:
+    width 0.6s var(--tmb-ease) 0.12s,
+    min-width 0.6s var(--tmb-ease) 0.12s,
+    box-shadow 0.5s ease 0.12s,
+    background-color 0.5s ease !important;
+  animation: tmbSlideFromRight 0.6s var(--tmb-ease) backwards;
+}
+
+[class*="membersWrap_"]:is(:hover, :focus-within) {
+  border-left-color: rgba(255, 255, 255, 0.05) !important;
+  box-shadow: -28px 0 50px -20px rgba(0, 0, 0, 0.9) !important;
+  transition:
+    width 0.6s var(--tmb-ease),
+    min-width 0.6s var(--tmb-ease),
+    box-shadow 0.5s ease,
+    background-color 0.5s ease !important;
+}
+
+/* световая полоса по левому краю */
+[class*="membersWrap_"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.9) 50%, transparent);
+  box-shadow: 0 0 12px 1px rgba(255, 255, 255, 0.35);
+  opacity: 0.12;
+  transform: scaleY(0.3);
+  transition: opacity 0.5s ease, transform 0.7s var(--tmb-ease);
+}
+
+[class*="membersWrap_"]:is(:hover, :focus-within)::before {
+  opacity: 0.7;
+  transform: scaleY(1);
+}
+
+/* аватарки в свёрнутом виде чуть меньше */
+[class*="membersWrap_"] [class*="member_"] [class*="layout_"] > [class*="avatar_"] {
+  transform: scale(0.88);
+  transition: transform 0.5s var(--tmb-spring) !important;
+}
+
+[class*="membersWrap_"]:is(:hover, :focus-within) [class*="member_"] [class*="layout_"] > [class*="avatar_"] {
+  transform: scale(1);
+  transition-delay: calc(var(--tmb-i, 20) * 25ms) !important;
+}
+
+/* имена, статусы и заголовки ролей — влетают справа по очереди */
+[class*="membersWrap_"] [class*="member_"] [class*="layout_"] > [class*="content_"],
+[class*="membersWrap_"] [class*="membersGroup_"] {
+  opacity: 0 !important;
+  transform: translateX(22px);
+  filter: blur(4px);
+  transition:
+    opacity 0.15s ease,
+    transform 0.2s ease,
+    filter 0.15s ease !important;
+}
+
+[class*="membersWrap_"]:is(:hover, :focus-within) [class*="member_"] [class*="layout_"] > [class*="content_"],
+[class*="membersWrap_"]:is(:hover, :focus-within) [class*="membersGroup_"] {
+  opacity: 1 !important;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 0.4s ease,
+    transform 0.55s var(--tmb-ease),
+    filter 0.4s ease !important;
+  transition-delay: calc(80ms + var(--tmb-i, 20) * 25ms) !important;
+}
+
+/* внутренние элементы не мигают сами по себе — ими управляет блок выше */
+[class*="membersWrap_"] [class*="member_"] [class*="name_"],
+[class*="membersWrap_"] [class*="member_"] [class*="username_"] {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* при наведении на участника аватарка чуть увеличивается */
+[class*="membersWrap_"] [class*="member_"]:hover [class*="layout_"] > [class*="avatar_"] {
+  transform: scale(1.1);
+  transition-delay: 0s !important;
+}
+
+/* порядковый номер строки для задержки */
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(1) { --tmb-i: 0; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(2) { --tmb-i: 1; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(3) { --tmb-i: 2; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(4) { --tmb-i: 3; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(5) { --tmb-i: 4; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(6) { --tmb-i: 5; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(7) { --tmb-i: 6; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(8) { --tmb-i: 7; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(9) { --tmb-i: 8; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(10) { --tmb-i: 9; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(11) { --tmb-i: 10; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(12) { --tmb-i: 11; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(13) { --tmb-i: 12; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(14) { --tmb-i: 13; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(15) { --tmb-i: 14; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(16) { --tmb-i: 15; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(17) { --tmb-i: 16; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(18) { --tmb-i: 17; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(19) { --tmb-i: 18; }
+[class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(20) { --tmb-i: 19; }
 
 /* --- участники --- */
 [class*="member_"] [class*="layout_"] {

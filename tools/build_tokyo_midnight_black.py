@@ -24,7 +24,7 @@ SRC = ROOT / "src" / "tokyo-midnight-black"
 OUT = ROOT / "TokyoMidnightBlack.theme.css"
 UPSTREAM = "https://raw.githubusercontent.com/SnajperEXE/TokyoMidnight/main/"
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 
 # (файл, перекрашивать ли, заголовок раздела). Ссылки и игровые карточки
 # остаются в фирменных цветах платформ.
