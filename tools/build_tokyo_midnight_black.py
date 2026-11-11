@@ -1,15 +1,20 @@
 #!/usr/bin/env python3
 """Собирает TokyoMidnightBlack.theme.css.
 
-Берёт исходники TokyoMidnight (SnajperEXE, MIT), перекрашивает зашитые в код
-зелёные/мятные и тёмно-синие цвета в оттенки серого, затем добавляет
-чёрную палитру и мигающую точку из src/tokyo-midnight-black/black.css.
+Порядок в готовом файле:
+  1. шапка BetterDiscord и шрифты
+  2. настройки            — src/tokyo-midnight-black/settings.css
+  3. база темы            — скачивается, зелёные цвета перекрашиваются в серые
+  4. оформление и анимации — src/tokyo-midnight-black/extras.css
+  5. курсор-точка         — src/tokyo-midnight-black/cursor.css + assets/cursors/*.png
+  6. лицензия базы
 
 Запуск:
-    python3 tools/build_tokyo_midnight_black.py            # скачать с GitHub
+    python3 tools/build_tokyo_midnight_black.py            # скачать базу с GitHub
     python3 tools/build_tokyo_midnight_black.py ./папка     # взять локальные файлы
 """
 
+import base64
 import colorsys
 import re
 import sys
@@ -17,17 +22,20 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-UPSTREAM = "https://raw.githubusercontent.com/SnajperEXE/TokyoMidnight/main/"
+SRC = ROOT / "src" / "tokyo-midnight-black"
+CURSORS = ROOT / "assets" / "cursors"
 OUT = ROOT / "TokyoMidnightBlack.theme.css"
-BLACK = ROOT / "src" / "tokyo-midnight-black" / "black.css"
+UPSTREAM = "https://raw.githubusercontent.com/SnajperEXE/TokyoMidnight/main/"
 
-# (файл, перекрашивать ли). Ссылки и игровые карточки остаются в фирменных
-# цветах платформ — это отдельная фишка оригинальной темы.
+VERSION = "1.2.0"
+
+# (файл, перекрашивать ли, заголовок раздела). Ссылки и игровые карточки
+# остаются в фирменных цветах платформ.
 SOURCES = [
-    ("links.css", False),
-    ("gamecards.css", False),
-    ("addons/memberlist.css", True),
-    ("tokyo_midnight.css", True),
+    ("links.css", False, "Цветные ссылки платформ"),
+    ("gamecards.css", False, "Карточки игр"),
+    ("addons/memberlist.css", True, "Сворачиваемый список участников"),
+    ("tokyo_midnight.css", True, "Основа"),
 ]
 
 FONTS = [
@@ -36,7 +44,7 @@ FONTS = [
     "https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap",
 ]
 
-# Фильтры оригинала, которые красят элементы в мятный цвет.
+# Фильтры базы, которые красят элементы в мятный цвет.
 FILTER_FIXES = {
     "filter: hue-rotate(160deg) saturate(2.5) brightness(1.3) !important;":
         "filter: grayscale(1) brightness(1.4) !important;",
@@ -44,41 +52,32 @@ FILTER_FIXES = {
         "filter: grayscale(1) brightness(1.1);",
 }
 
-HEADER = """/**
+# Точка нажатия курсоров (в пикселях картинки 32×32).
+HOTSPOTS = {"handwriting": (14, 14)}
+
+HEADER = f"""/**
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
- * @version 1.1.0
- * @description Чёрно-белая версия TokyoMidnight: глубокий чёрный фон, серебристые акценты, мигающая белая точка у каналов и плавные анимации.
- * @source https://github.com/fluffybarbara/fbtheme
+ * @authorLink https://github.com/FluffyBarbara
+ * @version {VERSION}
+ * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации · ◉ курсор-точка
+ * @source https://github.com/FluffyBarbara/fbtheme
+ * @website https://github.com/FluffyBarbara/fbtheme
  */
 
 /*
- * Основано на TokyoMidnight от SnajperEXE — https://github.com/SnajperEXE/TokyoMidnight
- *
- * MIT License
- * Copyright (c) 2026 SnajperEXE
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- *
- * Настройки цветов и точки — в самом конце файла, в блоке «ЧЁРНАЯ ПАЛИТРА».
+ *  ████████  ███    ███  ██████
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v{VERSION}
+ *     ██     ██ ████ ██  ██████      by FluffyBarbara
+ *     ██     ██  ██  ██  ██   ██
+ *     ██     ██      ██  ██████      Настройки — сразу ниже.
  */
 """
+
+
+def section(title):
+    line = "═" * 58
+    return f"\n/* ╔{line}╗\n   ║  {title:<56}║\n   ╚{line}╝ */\n"
 
 
 def to_gray(r, g, b):
@@ -148,6 +147,30 @@ def recolor(css):
     return css
 
 
+def strip_base(css):
+    """Убирает из базы шапки-подписи и старый блок курсоров."""
+    css = re.sub(r"/\* @name.*?@description[^\n]*\n", "", css, flags=re.S)
+    start = css.find("/* 1. Normal */")
+    end = css.find('[class*="guildInviteContainer"]')
+    if start != -1 and end > start:
+        css = css[:start] + css[end:]
+    return css
+
+
+def cursor_value(name):
+    def data(path):
+        return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
+    x, y = HOTSPOTS.get(name, (16, 16))
+    one = data(CURSORS / f"{name}.png")
+    two = data(CURSORS / f"{name}@2x.png")
+    return f'image-set(url("{one}") 1x, url("{two}") 2x) {x} {y}'
+
+
+def build_cursor():
+    css = (SRC / "cursor.css").read_text(encoding="utf-8")
+    return re.sub(r"\{\{([a-z-]+)\}\}", lambda m: cursor_value(m.group(1)), css)
+
+
 def load(name, local):
     if local:
         return (Path(local) / name).read_text(encoding="utf-8")
@@ -155,17 +178,25 @@ def load(name, local):
         return r.read().decode("utf-8")
 
 
+def license_notice():
+    text = (SRC / "LICENSE-TokyoMidnight").read_text(encoding="utf-8").strip()
+    body = "\n".join((" * " + l).rstrip() for l in text.splitlines())
+    return "\n/*\n * Сторонний код в этом файле распространяется по лицензии:\n *\n" + body + "\n */\n"
+
+
 def main():
     local = sys.argv[1] if len(sys.argv) > 1 else None
     parts = [HEADER, "\n".join(f'@import url("{u}");' for u in FONTS), ""]
-    for name, do_recolor in SOURCES:
-        css = load(name, local)
-        parts.append(f"\n/* {'=' * 56}\n   TokyoMidnight: {name}\n   {'=' * 56} */\n")
+    parts.append((SRC / "settings.css").read_text(encoding="utf-8"))
+    for name, do_recolor, title in SOURCES:
+        css = strip_base(load(name, local))
+        parts.append(section(title))
         parts.append(recolor(css) if do_recolor else css)
-    parts.append(f"\n/* {'=' * 56}\n   ЧЁРНАЯ ПАЛИТРА И МИГАЮЩАЯ ТОЧКА\n   {'=' * 56} */\n")
-    parts.append(BLACK.read_text(encoding="utf-8"))
+    parts.append((SRC / "extras.css").read_text(encoding="utf-8"))
+    parts.append(build_cursor())
+    parts.append(license_notice())
     OUT.write_text("\n".join(parts), encoding="utf-8")
-    print(f"Готово: {OUT.relative_to(ROOT)}")
+    print(f"Готово: {OUT.relative_to(ROOT)}  ({OUT.stat().st_size // 1024} КБ)")
 
 
 if __name__ == "__main__":

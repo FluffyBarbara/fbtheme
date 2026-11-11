@@ -1,0 +1,98 @@
+/* ╔══════════════════════════════════════════════════════════╗
+   ║                       НАСТРОЙКИ                          ║
+   ║   Меняй значения ниже — остальной файл трогать не нужно  ║
+   ╚══════════════════════════════════════════════════════════╝ */
+
+:root:root {
+
+  /* ─── Фон ─────────────────────────────────────────────── */
+
+  --tokyo-midnight-bg-main: #050505;
+  --tokyo-midnight-bg-sidebars: #090909f5;
+  --tokyo-midnight-bg-panels: #0c0c0c;
+
+  /* своя картинка: url("https://…/картинка.png") */
+  --tokyo-midnight-app-bg:
+    radial-gradient(60% 50% at 15% 0%, rgba(255, 255, 255, 0.06), transparent 70%),
+    radial-gradient(50% 40% at 100% 100%, rgba(255, 255, 255, 0.04), transparent 70%),
+    linear-gradient(180deg, #070707, #000000);
+
+  /* значок на кнопке «Домой» */
+  --tokyo-midnight-home-logo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3CradialGradient id='g'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='.35'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='24' cy='24' r='23' fill='url(%23g)'/%3E%3Ccircle cx='24' cy='24' r='12.5' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3Ccircle cx='24' cy='24' r='4.5' fill='%23fff'/%3E%3C/svg%3E");
+
+  /* ─── Текст ───────────────────────────────────────────── */
+
+  --tokyo-midnight-text-normal: #dcdcdc;
+  --tokyo-midnight-text-header: #ffffff;
+  --tokyo-midnight-link-cards: #f2f2f2;
+
+  /* ─── Каналы ──────────────────────────────────────────── */
+
+  --tokyo-midnight-channel-text: #8e8e8e;
+  --tokyo-midnight-channel-text-hover: #f0f0f0;
+  --tokyo-midnight-channel-active: #ffffff;
+  --tokyo-midnight-category-text: #5e5e5e;
+
+  /* ─── Мигающая точка у каналов ────────────────────────── */
+
+  --tmb-dot-color: #ffffff;
+  --tmb-dot-size: 6px;
+  --tmb-dot-speed-selected: 1.4s;  /* выбранный канал   */
+  --tmb-dot-speed-unread: 2.2s;    /* непрочитанный     */
+
+  /* ─── Иконки и акценты ────────────────────────────────── */
+
+  --tokyo-midnight-icons: #c4c4c4;
+  --tokyo-midnight-icons-2: #9a9a9a;
+  --tokyo-midnight-main: #ffffff;
+  --tokyo-midnight-main2: #cfcfcf;
+  --tokyo-midnight-guild_dot_online: #ffffff;
+  --tokyo-midnight-guild_dot_total: #4a4a4a;
+
+  /* ─── Рамки и свечение ────────────────────────────────── */
+
+  --tokyo-midnight-border: rgba(255, 255, 255, 0.16);
+  --tokyo-midnight-border-strong: rgba(255, 255, 255, 0.28);
+  --tokyo-midnight-text-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+  --tokyo-midnight-border-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+  --tokyo-midnight-shadow-glow: 0 0 18px rgba(255, 255, 255, 0.14);
+  --tokyo-midnight-link-shadow: 0 0 15px rgba(255, 255, 255, 0.35);
+  --tokyo-member-fade: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
+  --tokyo-midnight-message-highlight: rgba(255, 255, 255, 0.06);
+
+  /* ─── Палитра ─────────────────────────────────────────── */
+
+  --tokyo-midnight-black: #000000;
+  --tokyo-midnight-gray: #3a3a3a;
+  --tokyo-midnight-yellow: #d6d6d6;
+  --tokyo-midnight-orange: #bdbdbd;
+  --tokyo-midnight-green: #e6e6e6;
+  --tokyo-midnight-green2: #7a7a7a;
+  --tokyo-midnight-blue: #9a9a9a;
+  --tokyo-midnight-purple: #8c8c8c;
+  --tokyo-midnight-pink: #cfcfcf;
+  --tokyo-midnight-red: #e0303ae5;
+  --tokyo-midnight-critical-gradient: linear-gradient(135deg, #1a0306, #4a0710);
+  --tokyo-midnight-special-buttons: linear-gradient(90deg, #111111, #f2f2f2, #2a2a2a);
+  --tokyo-midnight-opal: linear-gradient(135deg, #ffffff 0%, #bdbdbd 25%, #5a5a5a 50%, #d9d9d9 75%, #ffffff 100%);
+  --tokyo-midnight-custom1: linear-gradient(135deg, #0a0a0a 0%, #2b2b2b 40%, #ffffff 100%);
+  --tokyo-midnight-custom2: linear-gradient(90deg, #ffffff, #8a8a8a, #1a1a1a);
+  --tokyo-midnight-custom3: linear-gradient(90deg, #ffffff, #cfcfcf, #8f8f8f);
+  --tokyo-midnight-custom4: linear-gradient(90deg, #f5f5f5, #d0d0d0, #f5f5f5);
+  --tokyo-midnight-custom5: linear-gradient(90deg, #ffffff22, #ffffffcc);
+  --tokyo-midnight-rainbow: linear-gradient(90deg, #3a3a3a, #8a8a8a, #ffffff, #8a8a8a, #3a3a3a);
+
+  /* ─── Предупреждения ──────────────────────────────────── */
+
+  --tokyo-midnight-warning: #ff4d53;
+  --tokyo-midnight-warning-soft: hsla(0, 86%, 67%, 0.12);
+  --tokyo-midnight-warning-bg: #140000;
+  --tokyo-midnight-warning-text: #ffacbf;
+  --tokyo-mifnight-warning-text: #ffacbf;
+
+  /* ─── Список участников ───────────────────────────────── */
+
+  --tokyo-member-width: 240px;
+  --tokyo-member-collapsed: 42px;
+  --tokyo-member-transition: .38s cubic-bezier(.25, 1, .5, 1);
+}
