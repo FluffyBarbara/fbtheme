@@ -6,15 +6,13 @@
   2. настройки            — src/tokyo-midnight-black/settings.css
   3. база темы            — скачивается, зелёные цвета перекрашиваются в серые
   4. оформление и анимации — src/tokyo-midnight-black/extras.css
-  5. курсор-точка         — src/tokyo-midnight-black/cursor.css + assets/cursors/*.png
-  6. лицензия базы
+  5. лицензия базы
 
 Запуск:
     python3 tools/build_tokyo_midnight_black.py            # скачать базу с GitHub
     python3 tools/build_tokyo_midnight_black.py ./папка     # взять локальные файлы
 """
 
-import base64
 import colorsys
 import re
 import sys
@@ -23,11 +21,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src" / "tokyo-midnight-black"
-CURSORS = ROOT / "assets" / "cursors"
 OUT = ROOT / "TokyoMidnightBlack.theme.css"
 UPSTREAM = "https://raw.githubusercontent.com/SnajperEXE/TokyoMidnight/main/"
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 # (файл, перекрашивать ли, заголовок раздела). Ссылки и игровые карточки
 # остаются в фирменных цветах платформ.
@@ -52,15 +49,12 @@ FILTER_FIXES = {
         "filter: grayscale(1) brightness(1.1);",
 }
 
-# Точка нажатия курсоров (в пикселях картинки 32×32).
-HOTSPOTS = {"handwriting": (14, 14)}
-
 HEADER = f"""/**
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
  * @version {VERSION}
- * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации · ◉ курсор-точка
+ * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
  */
@@ -148,27 +142,13 @@ def recolor(css):
 
 
 def strip_base(css):
-    """Убирает из базы шапки-подписи и старый блок курсоров."""
+    """Убирает из базы шапки-подписи и блок курсоров (курсор остаётся системным)."""
     css = re.sub(r"/\* @name.*?@description[^\n]*\n", "", css, flags=re.S)
     start = css.find("/* 1. Normal */")
     end = css.find('[class*="guildInviteContainer"]')
     if start != -1 and end > start:
         css = css[:start] + css[end:]
     return css
-
-
-def cursor_value(name):
-    def data(path):
-        return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
-    x, y = HOTSPOTS.get(name, (16, 16))
-    one = data(CURSORS / f"{name}.png")
-    two = data(CURSORS / f"{name}@2x.png")
-    return f'image-set(url("{one}") 1x, url("{two}") 2x) {x} {y}'
-
-
-def build_cursor():
-    css = (SRC / "cursor.css").read_text(encoding="utf-8")
-    return re.sub(r"\{\{([a-z-]+)\}\}", lambda m: cursor_value(m.group(1)), css)
 
 
 def load(name, local):
@@ -193,7 +173,6 @@ def main():
         parts.append(section(title))
         parts.append(recolor(css) if do_recolor else css)
     parts.append((SRC / "extras.css").read_text(encoding="utf-8"))
-    parts.append(build_cursor())
     parts.append(license_notice())
     OUT.write_text("\n".join(parts), encoding="utf-8")
     print(f"Готово: {OUT.relative_to(ROOT)}  ({OUT.stat().st_size // 1024} КБ)")
