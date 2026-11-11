@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.4.0
+ * @version 1.4.1
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,10 +10,15 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.4.0
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.4.1
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
+ *
+ *  © 2026 FluffyBarbara. Все права защищены.
+ *  Тему можно использовать в своём Discord. Копировать код в другие проекты,
+ *  перезаливать, распространять и выдавать за своё без письменного разрешения
+ *  автора запрещено. Подробно: https://github.com/FluffyBarbara/fbtheme/blob/main/LICENSE
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Story+Script&display=swap");
@@ -5619,7 +5624,8 @@ form [class*="channelTextArea_"]:focus-within [class*="scrollableContainer_"] {
 
 
 /*
- * Сторонний код в этом файле распространяется по лицензии:
+ * Часть кода в этом файле — сторонний код по лицензии MIT,
+ * на него распространяется только эта лицензия:
  *
  * MIT License
  *

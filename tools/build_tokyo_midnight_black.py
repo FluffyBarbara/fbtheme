@@ -24,7 +24,7 @@ SRC = ROOT / "src" / "tokyo-midnight-black"
 OUT = ROOT / "TokyoMidnightBlack.theme.css"
 UPSTREAM = "https://raw.githubusercontent.com/SnajperEXE/TokyoMidnight/main/"
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 # (файл, перекрашивать ли, заголовок раздела). Ссылки и игровые карточки
 # остаются в фирменных цветах платформ.
@@ -65,6 +65,11 @@ HEADER = f"""/**
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
+ *
+ *  © 2026 FluffyBarbara. Все права защищены.
+ *  Тему можно использовать в своём Discord. Копировать код в другие проекты,
+ *  перезаливать, распространять и выдавать за своё без письменного разрешения
+ *  автора запрещено. Подробно: https://github.com/FluffyBarbara/fbtheme/blob/main/LICENSE
  */
 """
 
@@ -161,7 +166,7 @@ def load(name, local):
 def license_notice():
     text = (SRC / "LICENSE-TokyoMidnight").read_text(encoding="utf-8").strip()
     body = "\n".join((" * " + l).rstrip() for l in text.splitlines())
-    return "\n/*\n * Сторонний код в этом файле распространяется по лицензии:\n *\n" + body + "\n */\n"
+    return "\n/*\n * Часть кода в этом файле — сторонний код по лицензии MIT,\n * на него распространяется только эта лицензия:\n *\n" + body + "\n */\n"
 
 
 def main():

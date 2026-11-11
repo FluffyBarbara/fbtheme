@@ -2,10 +2,16 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.0.0
+ * @version 1.1.0
  * @description 🔄 Сам скачивает свежие версии тем из репозитория FluffyBarbara/fbtheme и заменяет их в BetterDiscord.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
+ */
+
+/*
+ * © 2026 FluffyBarbara. Все права защищены.
+ * Копирование, изменение и распространение кода без письменного разрешения
+ * автора запрещено. Подробно: https://github.com/FluffyBarbara/fbtheme/blob/main/LICENSE
  */
 
 "use strict";
@@ -18,10 +24,8 @@ const BRANCH = "main";
 const CHECK_EVERY = 5 * 60 * 1000; // 5 минут
 
 // always: true — скачать, даже если темы ещё нет в папке.
-// always: false — обновлять, только если тема уже установлена.
 const THEMES = [
   { file: "TokyoMidnightBlack.theme.css", name: "TokyoMidnightBlack", always: true },
-  { file: "FluffyBarbara.theme.css", name: "FluffyBarbara", always: false },
 ];
 
 module.exports = class FBThemeUpdater {

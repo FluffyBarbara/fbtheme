@@ -1,21 +1,49 @@
-MIT License
+Copyright (c) 2026 FluffyBarbara. Все права защищены. All rights reserved.
 
-Copyright (c) 2026 Fluffy Barbara
+ЛИЦЕНЗИЯ НА ИСПОЛЬЗОВАНИЕ
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Этот репозиторий (тема TokyoMidnightBlack, плагин FBThemeUpdater, исходники,
+скрипты сборки и все прочие файлы — далее «Материалы») принадлежит FluffyBarbara.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+РАЗРЕШЕНО:
+  1. Скачивать и устанавливать тему и плагин в свой клиент Discord
+     для личного некоммерческого использования.
+  2. Менять значения в блоке «НАСТРОЙКИ» у своей личной копии темы.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+ЗАПРЕЩЕНО без предварительного письменного разрешения автора:
+  1. Копировать код Материалов целиком или частично в другие темы,
+     плагины, сайты и любые другие проекты.
+  2. Публиковать, распространять, перезаливать, продавать или иным образом
+     передавать Материалы или их изменённые версии третьим лицам.
+  3. Создавать производные работы на основе Материалов.
+  4. Удалять или изменять сведения об авторстве и эту лицензию.
+  5. Выдавать Материалы или их части за свою работу.
+
+Любое использование, не разрешённое явно выше, запрещено.
+За разрешением обращайтесь через GitHub: https://github.com/FluffyBarbara
+
+СТОРОННИЙ КОД
+Часть файла TokyoMidnightBlack.theme.css основана на стороннем коде,
+распространяемом по лицензии MIT (см. src/tokyo-midnight-black/LICENSE-TokyoMidnight
+и примечание в конце файла темы). На этот сторонний код распространяется
+его собственная лицензия; настоящая лицензия относится к коду автора.
+
+ОТКАЗ ОТ ГАРАНТИЙ
+Материалы предоставляются «как есть», без каких-либо гарантий. Автор не несёт
+ответственности за любой ущерб, связанный с их использованием.
+
+────────────────────────────────────────────────────────────────────────────
+
+ENGLISH SUMMARY
+
+You MAY download and install the theme and the plugin in your own Discord client
+for personal, non-commercial use, and change the values in the settings block
+of your personal copy.
+
+You MAY NOT, without prior written permission from the author: copy any part of
+the code into other projects; publish, redistribute, re-upload or sell the
+Materials or modified versions; create derivative works; remove or alter
+authorship notices or this license; or present the Materials as your own work.
+
+Third-party code included under the MIT License remains under that license.
+THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
