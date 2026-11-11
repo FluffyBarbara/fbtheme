@@ -1,10 +1,15 @@
-# FluffyBarbara ✿ — тема для BetterDiscord
+# Темы для BetterDiscord
+
+- [FluffyBarbara ✿](#fluffybarbara--розово-лавандовое-стекло) — розово-лавандовое стекло
+- [TokyoMidnightBlack](#tokyomidnightblack--чёрно-белая) — чёрно-белая, с мигающей точкой у каналов
+
+## FluffyBarbara ✿ — розово-лавандовое стекло
 
 Нежная «стеклянная» тема: анимированное розово-лавандовое сияние на фоне, полупрозрачные панели с размытием, градиентные акценты и плавные анимации.
 
 ![Превью](assets/preview.png)
 
-## Что внутри
+### Что внутри
 
 - 🌌 Анимированный фон-сияние (или своя картинка)
 - 🧊 Стеклянные панели с размытием: каналы, чат, участники, меню, модальные окна
@@ -15,14 +20,14 @@
 - 🔤 Шрифт Nunito (с кириллицей)
 - ♿ Анимации отключаются, если в системе или Discord включено «уменьшить движение»
 
-## Установка
+### Установка
 
 1. Установи [BetterDiscord](https://betterdiscord.app/).
 2. Скачай файл [`FluffyBarbara.theme.css`](FluffyBarbara.theme.css).
 3. В Discord: **Настройки → BetterDiscord → Темы → Открыть папку тем**.
 4. Положи туда файл и включи тему переключателем.
 
-## Настройка
+### Настройка
 
 Все настройки — в самом верху файла, в блоке `:root`:
 
@@ -45,6 +50,35 @@
 --fb-accent-3: #6ad7ff;
 ```
 
+## TokyoMidnightBlack — чёрно-белая
+
+Файл: [`TokyoMidnightBlack.theme.css`](TokyoMidnightBlack.theme.css). Основана на [TokyoMidnight](https://github.com/SnajperEXE/TokyoMidnight) от SnajperEXE (MIT).
+
+- ⚫ Глубокий чёрный фон, серебристые и белые акценты вместо мятно-зелёных
+- ⚪ **Мигающая белая точка** у выбранного канала (быстро) и у непрочитанных (медленнее), тусклая точка при наведении
+- 🔗 Сохранены фишки оригинала: цветные ссылки платформ, игровые карточки, сворачиваемый список участников
+- 📦 Один файл, без подгрузки CSS с чужого сайта
+
+Устанавливается так же, как FluffyBarbara (см. выше). Цвета и точка настраиваются в блоке `:root` **в конце** файла:
+
+| Переменная | Что меняет | По умолчанию |
+|---|---|---|
+| `--tmb-dot-color` | цвет точки | `#ffffff` |
+| `--tmb-dot-size` | размер точки | `6px` |
+| `--tmb-dot-speed-selected` | скорость мигания у выбранного канала | `1.4s` |
+| `--tmb-dot-speed-unread` | скорость мигания у непрочитанных | `2.2s` |
+| `--tokyo-midnight-app-bg` | фон приложения, можно `url("…")` | чёрный градиент |
+| `--tokyo-midnight-*` | остальные цвета оригинальной темы | чёрно-белые |
+
+Пересобрать тему из свежей версии оригинала:
+
+```bash
+python3 tools/build_tokyo_midnight_black.py
+```
+
+Скрипт скачает TokyoMidnight с GitHub, перекрасит зелёные цвета в серые и добавит `src/tokyo-midnight-black/black.css`.
+
 ## Лицензия
 
-[MIT](LICENSE)
+
+[MIT](LICENSE). TokyoMidnightBlack основана на TokyoMidnight © 2026 SnajperEXE, MIT — см. [`src/tokyo-midnight-black/LICENSE-TokyoMidnight`](src/tokyo-midnight-black/LICENSE-TokyoMidnight).

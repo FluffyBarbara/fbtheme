@@ -1,0 +1,205 @@
+/* ============================================================
+   TOKYO MIDNIGHT BLACK — чёрная палитра и дополнения
+   ============================================================ */
+
+:root {
+
+  /* === CORE ATMOSPHERE === */
+
+  --tokyo-midnight-bg-main: #050505;
+  --tokyo-midnight-bg-sidebars: #090909f5;
+  --tokyo-midnight-bg-panels: #0c0c0c;
+  /* Свой фон: url("https://…/картинка.png") */
+  --tokyo-midnight-app-bg:
+    radial-gradient(60% 50% at 15% 0%, rgba(255, 255, 255, 0.06), transparent 70%),
+    radial-gradient(50% 40% at 100% 100%, rgba(255, 255, 255, 0.04), transparent 70%),
+    linear-gradient(180deg, #070707, #000000);
+  --tokyo-midnight-home-logo: url("https://snajperexe.github.io/TokyoMidnight/discord_tokyo_midnight.png");
+
+  /* === COLORS === */
+  --tokyo-midnight-black: #000000;
+  --tokyo-midnight-gray: #3a3a3a;
+  --tokyo-midnight-yellow: #d6d6d6;
+  --tokyo-midnight-orange: #bdbdbd;
+  --tokyo-midnight-green: #e6e6e6;
+  --tokyo-midnight-green2: #7a7a7a;
+  --tokyo-midnight-blue: #9a9a9a;
+  --tokyo-midnight-purple: #8c8c8c;
+  --tokyo-midnight-pink: #cfcfcf;
+  --tokyo-midnight-red: #e0303ae5;
+  --tokyo-midnight-critical-gradient: linear-gradient(135deg, #1a0306, #4a0710);
+  --tokyo-midnight-special-buttons: linear-gradient(90deg, #111111, #f2f2f2, #2a2a2a) !important;
+  --tokyo-midnight-opal: linear-gradient(135deg, #ffffff 0%, #bdbdbd 25%, #5a5a5a 50%, #d9d9d9 75%, #ffffff 100%);
+  --tokyo-midnight-custom1: linear-gradient(135deg, #0a0a0a 0%, #2b2b2b 40%, #ffffff 100%);
+  --tokyo-midnight-custom2: linear-gradient(90deg, #ffffff, #8a8a8a, #1a1a1a);
+  --tokyo-midnight-custom3: linear-gradient(90deg, #ffffff, #cfcfcf, #8f8f8f);
+  --tokyo-midnight-custom4: linear-gradient(90deg, #f5f5f5, #d0d0d0, #f5f5f5);
+  --tokyo-midnight-custom5: linear-gradient(90deg, #ffffff22, #ffffffcc);
+  --tokyo-midnight-rainbow: linear-gradient(90deg, #3a3a3a, #8a8a8a, #ffffff, #8a8a8a, #3a3a3a);
+
+  /* === TEXT === */
+
+  --tokyo-midnight-text-normal: #dcdcdc;
+  --tokyo-midnight-text-header: #ffffff;
+  --tokyo-midnight-link-cards: #f2f2f2;
+
+  /* === CHANNELS === */
+
+  --tokyo-midnight-channel-text: #8e8e8e;
+  --tokyo-midnight-channel-text-hover: #f0f0f0;
+  --tokyo-midnight-channel-active: #ffffff;
+  --tokyo-midnight-category-text: #5e5e5e;
+
+  /* === ICONS === */
+
+  --tokyo-midnight-icons: #c4c4c4;
+  --tokyo-midnight-icons-2: #9a9a9a;
+
+  /* === ACCENTS === */
+
+  --tokyo-midnight-main: #ffffff;
+  --tokyo-midnight-main2: #cfcfcf;
+  --tokyo-midnight-guild_dot_online: #ffffff;
+  --tokyo-midnight-guild_dot_total: #4a4a4a;
+
+  /* === BORDERS === */
+
+  --tokyo-midnight-border: rgba(255, 255, 255, 0.16);
+  --tokyo-midnight-border-strong: rgba(255, 255, 255, 0.28);
+
+  /* === SHADOWS === */
+
+  --tokyo-midnight-text-shadow: 0 0 8px rgba(255, 255, 255, 0.35);
+  --tokyo-midnight-border-shadow: 0 0 8px rgba(255, 255, 255, 0.18);
+  --tokyo-midnight-shadow-glow: 0 0 18px rgba(255, 255, 255, 0.14);
+  --tokyo-midnight-link-shadow: 0 0 15px rgba(255, 255, 255, 0.35);
+  --tokyo-member-fade: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(255, 255, 255, 0.05));
+  --tokyo-midnight-message-highlight: rgba(255, 255, 255, 0.06);
+
+  /* === WARNING === */
+
+  --tokyo-midnight-warning: #ff4d53;
+  --tokyo-midnight-warning-soft: hsla(0, 86%, 67%, 0.12);
+  --tokyo-midnight-warning-bg: #140000;
+  --tokyo-midnight-warning-text: #ffacbf;
+  --tokyo-mifnight-warning-text: #ffacbf;
+
+  /* === MEMBER LIST === */
+
+  --tokyo-member-width: 240px;
+  --tokyo-member-collapsed: 42px;
+  --tokyo-member-transition: .38s cubic-bezier(.25, 1, .5, 1);
+
+  /* === МИГАЮЩАЯ ТОЧКА У КАНАЛОВ === */
+
+  --tmb-dot-color: #ffffff;
+  --tmb-dot-size: 6px;
+  --tmb-dot-speed-selected: 1.4s;  /* выбранный канал */
+  --tmb-dot-speed-unread: 2.2s;    /* непрочитанный канал */
+}
+
+/* ============================================================
+   КАНАЛЫ — МИГАЮЩАЯ БЕЛАЯ ТОЧКА
+   ============================================================ */
+
+@keyframes tmbDotBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+    box-shadow:
+      0 0 3px var(--tmb-dot-color),
+      0 0 9px rgba(255, 255, 255, 0.9),
+      0 0 18px rgba(255, 255, 255, 0.45);
+  }
+  50% {
+    opacity: 0.12;
+    transform: translateY(-50%) scale(0.6);
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+
+[class*="modeSelected_"] [class*="link_"]::after,
+[class*="modeUnreadImportant_"] [class*="link_"]::after,
+[class*="modeUnread_"] [class*="link_"]::after,
+[class*="containerDefault_"] [class*="wrapper_"]:hover [class*="link_"]::after {
+  content: "" !important;
+  position: absolute;
+  left: -3px;
+  top: 50%;
+  width: var(--tmb-dot-size);
+  height: var(--tmb-dot-size);
+  border-radius: 50%;
+  z-index: 999;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+/* выбранный канал — яркая быстрая точка */
+[class*="modeSelected_"] [class*="link_"]::after {
+  background: var(--tmb-dot-color) !important;
+  color: var(--tmb-dot-color);
+  animation: tmbDotBlink var(--tmb-dot-speed-selected) ease-in-out infinite !important;
+}
+
+/* непрочитанный канал — точка помедленнее */
+[class*="modeUnreadImportant_"]:not([class*="modeSelected_"]) [class*="link_"]::after,
+[class*="modeUnread_"]:not([class*="modeSelected_"]) [class*="link_"]::after {
+  background: var(--tmb-dot-color) !important;
+  color: var(--tmb-dot-color);
+  animation: tmbDotBlink var(--tmb-dot-speed-unread) ease-in-out infinite !important;
+}
+
+/* наведение на обычный канал — тусклая точка без мигания */
+[class*="containerDefault_"] [class*="wrapper_"]:hover:not([class*="modeSelected_"]):not([class*="modeUnreadImportant_"]):not([class*="modeUnread_"]) [class*="link_"]::after {
+  background: rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
+  animation: none !important;
+}
+
+/* выбранный канал — мягкая подсветка вместо зелёной */
+[class*="modeSelected_"] [class*="link_"] {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03)) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07) !important;
+  border-radius: 8px !important;
+}
+
+[class*="modeSelected_"] [class*="name_"],
+[class*="modeSelected_"] [class*="icon_"] {
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.35);
+}
+
+[class*="modeUnreadImportant_"] [class*="name_"],
+[class*="modeUnread_"] [class*="name_"] {
+  color: #f2f2f2 !important;
+}
+
+/* ============================================================
+   ОБЩИЕ ШТРИХИ
+   ============================================================ */
+
+/* логотип на кнопке «Домой» — в ч/б */
+[data-list-item-id="guildsnav___home"] [class*="childWrapper_"]::before {
+  filter: grayscale(1) brightness(1.15) contrast(1.1);
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
+/* ============================================================
+   МЕНЬШЕ АНИМАЦИЙ, ЕСЛИ ТАК ЗАДАНО В СИСТЕМЕ ИЛИ DISCORD
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="link_"]::after {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
+.reduce-motion [class*="link_"]::after {
+  animation: none !important;
+  opacity: 1 !important;
+}
