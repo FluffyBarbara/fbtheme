@@ -11,7 +11,23 @@
 
 Анимации работают всегда, даже если в Windows или Discord включено «уменьшить движение».
 
-## Установка
+## Установка в один клик
+
+1. Скачай **[TokyoMidnightBlack-Setup.exe](https://github.com/FluffyBarbara/fbtheme/releases/download/installer/TokyoMidnightBlack-Setup.exe)**.
+2. Запусти и нажми **Enter**.
+
+Установщик сам:
+
+- найдёт Discord (обычный, PTB или Canary), а если его нет — предложит скачать и установить;
+- закроет Discord, скачает **свежий BetterDiscord** и подключит его;
+- поставит и включит тему и плагин автообновления;
+- снова запустит Discord.
+
+Права администратора не нужны. Если Discord обновится и BetterDiscord пропадёт — просто запусти установщик ещё раз. Пункт **2** в меню отключает BetterDiscord.
+
+> Windows может показать «Система Windows защитила ваш компьютер» — это из-за того, что у файла нет платной цифровой подписи. Нажми **«Подробнее» → «Выполнить в любом случае»**.
+
+## Установка вручную
 
 1. Установи [BetterDiscord](https://betterdiscord.app/).
 2. Скачай [`TokyoMidnightBlack.theme.css`](https://raw.githubusercontent.com/FluffyBarbara/fbtheme/main/TokyoMidnightBlack.theme.css) (правой кнопкой → «Сохранить как»).
@@ -52,6 +68,8 @@
 | `--tokyo-midnight-*` | остальные цвета | чёрно-белые |
 
 ## Сборка
+
+Установщик (`installer/`, Go) собирается автоматически через GitHub Actions и выкладывается в релиз `installer`.
 
 Тема собирается скриптом из частей в `src/tokyo-midnight-black/`:
 
