@@ -5,6 +5,7 @@ package main
 
 import "fmt"
 
+func attachConsole()          {}
 func setupConsole() bool      { return true }
 func setTitle(string)         {}
 func killProcess(string) bool { return false }

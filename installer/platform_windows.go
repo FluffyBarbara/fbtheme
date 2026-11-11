@@ -18,9 +18,21 @@ var (
 	getConsoleMode     = kernel32.NewProc("GetConsoleMode")
 	setConsoleMode     = kernel32.NewProc("SetConsoleMode")
 	setConsoleTitleW   = kernel32.NewProc("SetConsoleTitleW")
+	allocConsole       = kernel32.NewProc("AllocConsole")
 	createNoWindow     = uint32(0x08000000)
 	enableVTProcessing = uint32(0x0004)
 )
+
+// У оконного exe нет консоли — создаём её для запасного режима.
+func attachConsole() {
+	allocConsole.Call()
+	if f, err := os.OpenFile("CONOUT$", os.O_RDWR, 0); err == nil {
+		os.Stdout, os.Stderr = f, f
+	}
+	if f, err := os.OpenFile("CONIN$", os.O_RDWR, 0); err == nil {
+		os.Stdin = f
+	}
+}
 
 // UTF-8 и цвета в консоли. Возвращает false, если цвета не поддерживаются.
 func setupConsole() bool {

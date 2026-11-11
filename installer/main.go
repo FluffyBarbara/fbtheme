@@ -4,7 +4,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,7 +18,7 @@ import (
 )
 
 const (
-	version   = "1.0.0"
+	version   = "1.1.0"
 	userAgent = "TokyoMidnightBlack-Setup/" + version
 
 	repoRaw     = "https://raw.githubusercontent.com/FluffyBarbara/fbtheme/main/"
@@ -32,6 +31,24 @@ const (
 	bdGitHub    = "https://github.com/BetterDiscord/BetterDiscord/releases/latest/download/betterdiscord.asar"
 	originalJS  = `module.exports = require("./core.asar");`
 	waitInstall = 10 * time.Minute
+)
+
+// reporter — то, через что установка рассказывает о ходе работы (окно или консоль).
+type reporter interface {
+	Step(i int)                          // начат шаг i (с нуля)
+	Log(kind, msg string)                // kind: ok, info, warn
+	Progress(frac float64, label string) // загрузка; frac < 0 — скрыть
+	ConfirmDiscordInstall() bool         // Discord не найден — ставить?
+}
+
+type options struct {
+	Updater bool `json:"updater"` // ставить плагин автообновления
+	Launch  bool `json:"launch"`  // запустить Discord в конце
+}
+
+var (
+	installSteps   = []string{"Ищу Discord", "Закрываю Discord", "Скачиваю свежий BetterDiscord", "Подключаю BetterDiscord", "Ставлю тему и плагин", "Запускаю Discord"}
+	uninstallSteps = []string{"Ищу Discord", "Отключаю BetterDiscord", "Запускаю Discord"}
 )
 
 // Варианты Discord.
@@ -54,62 +71,6 @@ type install struct {
 	Core string // папка discord_desktop_core
 }
 
-// ─── вывод ────────────────────────────────────────────────────────────────
-
-var (
-	cReset = "\x1b[0m"
-	cBold  = "\x1b[1m"
-	cDim   = "\x1b[90m"
-	cWhite = "\x1b[97m"
-	cGreen = "\x1b[92m"
-	cRed   = "\x1b[91m"
-	cYel   = "\x1b[93m"
-)
-
-func noColors() { cReset, cBold, cDim, cWhite, cGreen, cRed, cYel = "", "", "", "", "", "", "" }
-
-func banner() {
-	fmt.Println()
-	fmt.Println(cWhite + cBold + "   ████████  ███    ███  ██████ " + cReset)
-	fmt.Println(cWhite + cBold + "      ██     ████  ████  ██   ██" + cReset + "    TokyoMidnightBlack")
-	fmt.Println(cWhite + cBold + "      ██     ██ ████ ██  ██████ " + cReset + cDim + "    установщик v" + version + cReset)
-	fmt.Println(cWhite + cBold + "      ██     ██  ██  ██  ██   ██" + cReset)
-	fmt.Println(cWhite + cBold + "      ██     ██      ██  ██████ " + cReset + cDim + "    © 2026 FluffyBarbara" + cReset)
-	fmt.Println()
-}
-
-func step(n, total int, text string) {
-	fmt.Printf("\n%s[%d/%d]%s %s%s%s\n", cDim, n, total, cReset, cBold, text, cReset)
-}
-func ok(format string, a ...any) {
-	fmt.Printf("      %s✓%s %s\n", cGreen, cReset, fmt.Sprintf(format, a...))
-}
-func info(format string, a ...any) {
-	fmt.Printf("      %s·%s %s\n", cDim, cReset, fmt.Sprintf(format, a...))
-}
-func warn(format string, a ...any) {
-	fmt.Printf("      %s!%s %s\n", cYel, cReset, fmt.Sprintf(format, a...))
-}
-
-var stdin = bufio.NewReader(os.Stdin)
-
-func readLine() string {
-	s, _ := stdin.ReadString('\n')
-	return strings.TrimSpace(s)
-}
-
-func pause() {
-	fmt.Printf("\n%sНажми Enter, чтобы закрыть окно…%s", cDim, cReset)
-	readLine()
-}
-
-func fail(err error) {
-	fmt.Printf("\n   %s✗ Ошибка:%s %v\n", cRed+cBold, cReset, err)
-	fmt.Printf("   %sЕсли не получается — сделай скриншот этого окна и отправь автору.%s\n", cDim, cReset)
-	pause()
-	os.Exit(1)
-}
-
 // ─── пути ─────────────────────────────────────────────────────────────────
 
 func appData() string      { return os.Getenv("APPDATA") }
@@ -119,7 +80,7 @@ func bdAsar() string       { return filepath.Join(bdFolder(), "data", "betterdis
 
 // Сравнение версий вида "app-1.0.9187" и "discord_desktop_core-2".
 func versionKey(name string) []int {
-	name = name[strings.LastIndexAny(name, "-")+1:]
+	name = name[strings.LastIndex(name, "-")+1:]
 	var out []int
 	for _, p := range strings.Split(name, ".") {
 		n, err := strconv.Atoi(p)
@@ -191,11 +152,24 @@ func findInstalls() []install {
 	return found
 }
 
+func hasBetterDiscord(in install) bool {
+	raw, err := os.ReadFile(filepath.Join(in.Core, "index.js"))
+	return err == nil && strings.Contains(string(raw), "betterdiscord.asar")
+}
+
+func titles(list []install) string {
+	var t []string
+	for _, in := range list {
+		t = append(t, in.Title)
+	}
+	return strings.Join(t, ", ")
+}
+
 // ─── сеть ─────────────────────────────────────────────────────────────────
 
 var client = &http.Client{Timeout: 5 * time.Minute}
 
-func download(url string, showProgress bool) ([]byte, http.Header, error) {
+func download(url string, r reporter) ([]byte, http.Header, error) {
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("User-Agent", userAgent)
 	resp, err := client.Do(req)
@@ -207,19 +181,20 @@ func download(url string, showProgress bool) ([]byte, http.Header, error) {
 		return nil, nil, fmt.Errorf("сервер ответил %s", resp.Status)
 	}
 
-	var r io.Reader = resp.Body
-	if showProgress && resp.ContentLength > 0 {
-		r = &progressReader{r: resp.Body, total: resp.ContentLength}
+	var body io.Reader = resp.Body
+	if r != nil && resp.ContentLength > 0 {
+		body = &progressReader{r: resp.Body, total: resp.ContentLength, rep: r, last: -1}
 	}
-	data, err := io.ReadAll(r)
-	if showProgress {
-		fmt.Print("\r\x1b[2K")
+	data, err := io.ReadAll(body)
+	if r != nil {
+		r.Progress(-1, "")
 	}
 	return data, resp.Header, err
 }
 
 type progressReader struct {
 	r           io.Reader
+	rep         reporter
 	total, done int64
 	last        int
 }
@@ -227,235 +202,233 @@ type progressReader struct {
 func (p *progressReader) Read(b []byte) (int, error) {
 	n, err := p.r.Read(b)
 	p.done += int64(n)
-	pct := int(p.done * 100 / p.total)
-	if pct != p.last {
+	if pct := int(p.done * 100 / p.total); pct != p.last {
 		p.last = pct
-		bar := strings.Repeat("█", pct/5) + strings.Repeat("░", 20-pct/5)
-		fmt.Printf("\r      %s%s%s %3d%%  %.1f / %.1f МБ", cWhite, bar, cReset, pct,
-			float64(p.done)/1048576, float64(p.total)/1048576)
+		p.rep.Progress(float64(p.done)/float64(p.total),
+			fmt.Sprintf("%.1f из %.1f МБ", float64(p.done)/1048576, float64(p.total)/1048576))
 	}
 	return n, err
 }
 
-// ─── шаги установки ───────────────────────────────────────────────────────
+// ─── шаги ─────────────────────────────────────────────────────────────────
 
-func installDiscord() []install {
-	warn("Discord не найден на этом компьютере.")
-	fmt.Printf("\n      Нажми %sEnter%s, чтобы скачать и установить Discord, или закрой окно для отмены. ", cBold, cReset)
-	readLine()
+func installDiscord(r reporter) ([]install, error) {
+	r.Log("warn", "Discord не найден")
+	if !r.ConfirmDiscordInstall() {
+		return nil, errors.New("установка отменена: Discord не найден")
+	}
 
-	info("Скачиваю установщик Discord…")
-	data, _, err := download(discordDL, true)
+	r.Log("info", "Скачиваю Discord…")
+	data, _, err := download(discordDL, r)
 	if err != nil {
-		fail(fmt.Errorf("не удалось скачать Discord: %w", err))
+		return nil, fmt.Errorf("не удалось скачать Discord: %w", err)
 	}
 	setup := filepath.Join(os.TempDir(), "DiscordSetup.exe")
 	if err := os.WriteFile(setup, data, 0o755); err != nil {
-		fail(err)
+		return nil, err
 	}
 	if err := startDetached(setup); err != nil {
-		fail(fmt.Errorf("не удалось запустить установщик Discord: %w", err))
+		return nil, fmt.Errorf("не удалось запустить установщик Discord: %w", err)
 	}
-	ok("Установщик Discord запущен")
-	info("Жду, пока Discord установится и запустится (до %d минут)…", int(waitInstall.Minutes()))
+	r.Log("info", "Жду, пока Discord установится…")
 
 	deadline := time.Now().Add(waitInstall)
 	for time.Now().Before(deadline) {
-		if found := findInstalls(); len(found) > 0 {
+		if len(findInstalls()) > 0 {
 			time.Sleep(8 * time.Second) // даём Discord дописать файлы
-			ok("Discord установлен")
-			return findInstalls()
+			r.Log("ok", "Discord установлен")
+			return findInstalls(), nil
 		}
 		time.Sleep(3 * time.Second)
 	}
-	fail(errors.New("Discord так и не установился. Установи его вручную и запусти установщик ещё раз"))
-	return nil
+	return nil, errors.New("Discord так и не установился. Установи его вручную и запусти установщик ещё раз")
 }
 
-func installBetterDiscord() {
+func closeDiscord(r reporter, list []install) {
+	var closed []string
+	for _, in := range list {
+		if killProcess(in.Exe) {
+			closed = append(closed, in.Title)
+		}
+	}
+	if len(closed) > 0 {
+		r.Log("ok", "Закрыт: "+strings.Join(closed, ", "))
+		time.Sleep(1500 * time.Millisecond)
+	} else {
+		r.Log("info", "Discord не был запущен")
+	}
+}
+
+func installBetterDiscord(r reporter) error {
 	for _, dir := range []string{"data", "plugins", "themes"} {
 		if err := os.MkdirAll(filepath.Join(bdFolder(), dir), 0o755); err != nil {
-			fail(err)
+			return err
 		}
 	}
 
-	data, hdr, err := download(bdOfficial, true)
+	data, hdr, err := download(bdOfficial, r)
 	source := "betterdiscord.app"
 	if err != nil || len(data) < 100_000 {
-		warn("Официальный сайт не ответил, качаю с GitHub…")
-		data, hdr, err = download(bdGitHub, true)
+		r.Log("info", "Официальный сайт не ответил, качаю с GitHub…")
+		data, hdr, err = download(bdGitHub, r)
 		source = "GitHub"
 	}
 	if err != nil {
-		fail(fmt.Errorf("не удалось скачать BetterDiscord: %w", err))
+		return fmt.Errorf("не удалось скачать BetterDiscord: %w", err)
 	}
 	if len(data) < 100_000 {
-		fail(errors.New("скачанный файл BetterDiscord повреждён"))
+		return errors.New("скачанный файл BetterDiscord повреждён")
 	}
 	if err := os.WriteFile(bdAsar(), data, 0o644); err != nil {
-		fail(fmt.Errorf("не удалось сохранить BetterDiscord: %w", err))
+		return fmt.Errorf("не удалось сохранить BetterDiscord: %w", err)
 	}
 	ver := hdr.Get("X-Bd-Version")
 	if ver != "" {
 		ver = " " + ver
 	}
-	ok("BetterDiscord%s скачан с %s", ver, source)
+	r.Log("ok", fmt.Sprintf("BetterDiscord%s с %s", ver, source))
+	return nil
 }
 
-func inject(list []install) {
+func inject(r reporter, list []install) error {
 	asar := strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(bdAsar())
 	shim := fmt.Sprintf("require(\"%s\");\n%s", asar, originalJS)
 	for _, in := range list {
 		if err := os.WriteFile(filepath.Join(in.Core, "index.js"), []byte(shim), 0o644); err != nil {
-			fail(fmt.Errorf("не удалось подключить BetterDiscord к %s: %w", in.Title, err))
+			return fmt.Errorf("не удалось подключить BetterDiscord к %s: %w", in.Title, err)
 		}
-		ok("Подключён к %s", in.Title)
 	}
+	r.Log("ok", "Подключён к "+titles(list))
+	return nil
 }
 
-func installAddons(list []install) {
-	files := []struct{ file, dir, done string }{
-		{themeFile, "themes", "Тема TokyoMidnightBlack установлена"},
-		{pluginFile, "plugins", "Плагин автообновления установлен"},
-	}
-	for _, f := range files {
-		data, _, err := download(repoRaw+f.file, false)
-		if err != nil {
-			fail(fmt.Errorf("не удалось скачать %s: %w", f.file, err))
-		}
-		if err := os.WriteFile(filepath.Join(bdFolder(), f.dir, f.file), data, 0o644); err != nil {
-			fail(err)
-		}
-		ok("%s", f.done)
+func installAddons(r reporter, list []install, opt options) error {
+	type addon struct{ file, dir, name, done string }
+	addons := []addon{{themeFile, "themes", themeName, "тема"}}
+	if opt.Updater {
+		addons = append(addons, addon{pluginFile, "plugins", pluginName, "автообновление"})
 	}
 
-	for _, in := range list {
-		dir := filepath.Join(bdFolder(), "data", in.Data)
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			fail(err)
+	var done []string
+	for _, a := range addons {
+		data, _, err := download(repoRaw+a.file, nil)
+		if err != nil {
+			return fmt.Errorf("не удалось скачать %s: %w", a.file, err)
 		}
-		enable(filepath.Join(dir, "themes.json"), themeName)
-		enable(filepath.Join(dir, "plugins.json"), pluginName)
+		if err := os.WriteFile(filepath.Join(bdFolder(), a.dir, a.file), data, 0o644); err != nil {
+			return err
+		}
+		for _, in := range list {
+			dir := filepath.Join(bdFolder(), "data", in.Data)
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return err
+			}
+			if err := enable(filepath.Join(dir, a.dir+".json"), a.name); err != nil {
+				return err
+			}
+		}
+		done = append(done, a.done)
 	}
-	ok("Тема и плагин включены")
+	r.Log("ok", "Включены: "+strings.Join(done, " и "))
+	return nil
 }
 
 // Отмечает аддон включённым, сохраняя остальные настройки BetterDiscord.
-func enable(path, name string) {
+func enable(path, name string) error {
 	state := map[string]any{}
 	if raw, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(raw, &state)
 	}
 	state[name] = true
 	out, _ := json.MarshalIndent(state, "", "    ")
-	if err := os.WriteFile(path, out, 0o644); err != nil {
-		fail(err)
-	}
+	return os.WriteFile(path, out, 0o644)
 }
 
-func closeDiscord(list []install) {
-	for _, in := range list {
-		if killProcess(in.Exe) {
-			ok("%s закрыт", in.Title)
-		} else {
-			info("%s не был запущен", in.Title)
-		}
-	}
-	time.Sleep(1500 * time.Millisecond)
-}
-
-func launch(list []install) {
+func launch(r reporter, list []install) {
+	var started []string
 	for _, in := range list {
 		if err := startDiscord(in.Base, in.Exe); err != nil {
-			warn("Не удалось запустить %s — открой его сам", in.Title)
+			r.Log("warn", "Не удалось запустить "+in.Title+" — открой его сам")
 			continue
 		}
-		ok("%s запускается", in.Title)
+		started = append(started, in.Title)
+	}
+	if len(started) > 0 {
+		r.Log("ok", "Запускается: "+strings.Join(started, ", "))
 	}
 }
 
 // ─── сценарии ─────────────────────────────────────────────────────────────
 
-func runInstall() {
-	const total = 6
-
-	step(1, total, "Ищу Discord")
+func doInstall(r reporter, opt options) error {
+	r.Step(0)
 	list := findInstalls()
 	if len(list) == 0 {
-		list = installDiscord()
+		var err error
+		if list, err = installDiscord(r); err != nil {
+			return err
+		}
 	}
-	for _, in := range list {
-		ok("Найден %s", in.Title)
+	r.Log("ok", "Найден: "+titles(list))
+
+	r.Step(1)
+	closeDiscord(r, list)
+
+	r.Step(2)
+	if err := installBetterDiscord(r); err != nil {
+		return err
 	}
 
-	step(2, total, "Закрываю Discord")
-	closeDiscord(list)
+	r.Step(3)
+	if err := inject(r, list); err != nil {
+		return err
+	}
 
-	step(3, total, "Скачиваю свежий BetterDiscord")
-	installBetterDiscord()
+	r.Step(4)
+	if err := installAddons(r, list, opt); err != nil {
+		return err
+	}
 
-	step(4, total, "Подключаю BetterDiscord")
-	inject(list)
-
-	step(5, total, "Ставлю тему и плагин автообновления")
-	installAddons(list)
-
-	step(6, total, "Запускаю Discord")
-	launch(list)
-
-	fmt.Printf("\n   %s✓ Готово!%s Тема включится сама, обновления будут приходить автоматически.\n", cGreen+cBold, cReset)
-	fmt.Printf("   %sЕсли Discord обновится и BetterDiscord пропадёт — просто запусти установщик ещё раз.%s\n", cDim, cReset)
-	pause()
+	r.Step(5)
+	if opt.Launch {
+		launch(r, list)
+	} else {
+		r.Log("info", "Запуск пропущен")
+	}
+	return nil
 }
 
-func runUninstall() {
-	const total = 3
-
-	step(1, total, "Ищу Discord")
+func doUninstall(r reporter, opt options) error {
+	r.Step(0)
 	list := findInstalls()
 	if len(list) == 0 {
-		fail(errors.New("Discord не найден"))
+		return errors.New("Discord не найден")
 	}
-	for _, in := range list {
-		ok("Найден %s", in.Title)
-	}
+	r.Log("ok", "Найден: "+titles(list))
 
-	step(2, total, "Отключаю BetterDiscord")
-	closeDiscord(list)
+	r.Step(1)
+	closeDiscord(r, list)
 	for _, in := range list {
 		if err := os.WriteFile(filepath.Join(in.Core, "index.js"), []byte(originalJS), 0o644); err != nil {
-			fail(err)
+			return err
 		}
-		ok("Отключён от %s", in.Title)
 	}
-	info("Темы и плагины остались в %s", bdFolder())
+	r.Log("ok", "Отключён от "+titles(list))
 
-	step(3, total, "Запускаю Discord")
-	launch(list)
-
-	fmt.Printf("\n   %s✓ BetterDiscord отключён.%s\n", cGreen+cBold, cReset)
-	pause()
+	r.Step(2)
+	if opt.Launch {
+		launch(r, list)
+	}
+	return nil
 }
 
 func main() {
-	if !setupConsole() {
-		noColors()
-	}
-	setTitle("TokyoMidnightBlack — установщик")
-	banner()
-
 	if appData() == "" || localAppData() == "" {
-		fail(errors.New("не найдены папки пользователя Windows (APPDATA / LOCALAPPDATA)"))
+		runConsole(errors.New("не найдены папки пользователя Windows (APPDATA / LOCALAPPDATA)"))
+		return
 	}
-
-	fmt.Printf("   %s1%s  Установить или обновить %s(Enter)%s\n", cBold, cReset, cDim, cReset)
-	fmt.Printf("   %s2%s  Удалить BetterDiscord\n", cBold, cReset)
-	fmt.Printf("\n   Выбор: ")
-
-	switch readLine() {
-	case "2":
-		runUninstall()
-	default:
-		runInstall()
+	if runGUI() {
+		return
 	}
+	runConsole(nil)
 }
