@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.4.1
+ * @version 1.5.0
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.4.1
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.5.0
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5495,13 +5495,77 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
 [class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(19) { --tmb-i: 18; }
 [class*="membersWrap_"] :is([class*="member_"], [class*="membersGroup_"]):nth-child(20) { --tmb-i: 19; }
 
-/* --- участники --- */
+/* ============================================================
+   УЧАСТНИКИ — КАРТОЧКИ С ГРАДИЕНТНОЙ ОБВОДКОЙ
+   ============================================================ */
+
+/* убираем серые коробки с жёсткой рамкой */
+[class*="membersWrap_"] [class*="member_"] {
+  background: transparent !important;
+}
+
+[class*="membersWrap_"] [class*="childContainer_"] {
+  position: relative;
+  border: 0 !important;
+  border-radius: 12px !important;
+  transition: background 0.4s ease, box-shadow 0.4s ease !important;
+}
+
+[class*="membersWrap_"] [class*="childContainer_"]:not([class*="nameplated_"]) {
+  background: transparent !important;
+}
+
+/* обводка: светлая слева и плавно тает вправо */
+[class*="membersWrap_"] [class*="childContainer_"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06) 40%, transparent 85%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease, background 0.4s ease;
+}
+
+/* обводка появляется вместе с раскрытием списка */
+[class*="membersWrap_"]:is(:hover, :focus-within) [class*="childContainer_"]::after {
+  opacity: 0.55;
+  transition-delay: calc(120ms + var(--tmb-i, 20) * 25ms);
+}
+
+/* наведение на участника — обводка разгорается, мягкий фон и свечение */
+[class*="membersWrap_"] [class*="member_"]:hover [class*="childContainer_"]::after {
+  opacity: 1;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0.04) 90%);
+  transition-delay: 0s;
+}
+
+[class*="membersWrap_"] [class*="member_"]:hover [class*="childContainer_"]:not([class*="nameplated_"]) {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.015) 60%, transparent) !important;
+  box-shadow: -6px 0 18px -10px rgba(255, 255, 255, 0.45) !important;
+}
+
+/* ник светится цветом своей роли */
+[class*="membersWrap_"] [class*="member_"] [class*="username_"] {
+  transition: text-shadow 0.4s ease !important;
+}
+
+[class*="membersWrap_"] [class*="member_"]:hover [class*="username_"] {
+  text-shadow: 0 0 12px color-mix(in srgb, currentColor 60%, transparent) !important;
+}
+
+/* лёгкий сдвиг строки при наведении */
 [class*="member_"] [class*="layout_"] {
-  transition: transform 0.35s var(--tmb-spring), background 0.3s ease !important;
+  background: transparent !important;
+  transition: transform 0.35s var(--tmb-spring) !important;
 }
 [class*="member_"]:hover [class*="layout_"] {
   transform: translateX(4px);
-  background: rgba(255, 255, 255, 0.05) !important;
 }
 [class*="member_"] [class*="avatar_"] {
   transition: transform 0.4s var(--tmb-spring) !important;
