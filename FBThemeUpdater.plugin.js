@@ -2,7 +2,7 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.2.0
+ * @version 1.3.0
  * @description 🔄 Сам скачивает свежие версии TokyoMidnightBlack и следит, чтобы в Discord была включена чёрная тема.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -28,9 +28,11 @@ const CHECK_EVERY = 5 * 60 * 1000; // 5 минут
 const BLACK_THEME = "midnight";
 const SWITCH_COOLDOWN = 15 * 1000;
 
-// always: true — скачать, даже если темы ещё нет в папке.
-const THEMES = [
-  { file: "TokyoMidnightBlack.theme.css", name: "TokyoMidnightBlack", always: true },
+// Что обновлять. always: true — скачать, даже если файла ещё нет.
+// Плагин обновляет и сам себя, чтобы новые возможности приходили всем.
+const FILES = [
+  { file: "TokyoMidnightBlack.theme.css", name: "TokyoMidnightBlack", always: true, folder: () => BdApi.Themes.folder, enable: (n) => BdApi.Themes.enable(n) },
+  { file: "FBThemeUpdater.plugin.js", name: "FBThemeUpdater", always: false, folder: () => BdApi.Plugins.folder },
 ];
 
 module.exports = class FBThemeUpdater {
@@ -148,28 +150,29 @@ module.exports = class FBThemeUpdater {
       const sha = commit.sha;
       const updated = [];
 
-      for (const theme of THEMES) {
-        const target = path.join(BdApi.Themes.folder, theme.file);
+      for (const item of FILES) {
+        const target = path.join(item.folder(), item.file);
         const exists = fs.existsSync(target);
 
-        if (!exists && !theme.always) continue;
-        if (exists && BdApi.Data.load(this.meta.name, theme.file) === sha) continue;
+        if (!exists && !item.always) continue;
+        if (exists && BdApi.Data.load(this.meta.name, item.file) === sha) continue;
 
         // ссылка на конкретный коммит не кешируется — всегда свежая версия
-        const css = await this.get(`https://raw.githubusercontent.com/${REPO}/${sha}/${theme.file}`);
+        const text = await this.get(`https://raw.githubusercontent.com/${REPO}/${sha}/${item.file}`);
         const local = exists ? fs.readFileSync(target, "utf8") : null;
 
-        if (local !== css) {
-          fs.writeFileSync(target, css, "utf8");
-          updated.push(theme.name);
-          if (!exists) setTimeout(() => BdApi.Themes.enable(theme.name), 1500);
-        }
+        // запоминаем до записи: после записи плагина BetterDiscord сразу его перезапустит
+        BdApi.Data.save(this.meta.name, item.file, sha);
 
-        BdApi.Data.save(this.meta.name, theme.file, sha);
+        if (local !== text) {
+          updated.push(item.name);
+          fs.writeFileSync(target, text, "utf8");
+          if (!exists && item.enable) setTimeout(() => item.enable(item.name), 1500);
+        }
       }
 
       if (updated.length) {
-        BdApi.UI.showToast(`🔄 Тема обновлена: ${updated.join(", ")}`, { type: "success" });
+        BdApi.UI.showToast(`🔄 Обновлено: ${updated.join(", ")}`, { type: "success" });
       } else if (manual) {
         BdApi.UI.showToast("Темы уже последней версии", { type: "info" });
       }
@@ -205,7 +208,7 @@ module.exports = class FBThemeUpdater {
     button.style.cssText = "align-self:flex-start;padding:8px 16px;border:0;border-radius:8px;background:#fff;color:#000;font-weight:700;cursor:pointer";
     button.onclick = () => {
       // забыть сохранённые версии, чтобы точно сверить файлы заново
-      for (const theme of THEMES) BdApi.Data.delete(this.meta.name, theme.file);
+      for (const item of FILES) BdApi.Data.delete(this.meta.name, item.file);
       this.check(true);
     };
 
