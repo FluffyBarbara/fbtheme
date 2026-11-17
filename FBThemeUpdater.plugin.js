@@ -2,8 +2,8 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.1.0
- * @description 🔄 Сам скачивает свежие версии тем из репозитория FluffyBarbara/fbtheme и заменяет их в BetterDiscord.
+ * @version 1.2.0
+ * @description 🔄 Сам скачивает свежие версии TokyoMidnightBlack и следит, чтобы в Discord была включена чёрная тема.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
  */
@@ -23,6 +23,11 @@ const REPO = "FluffyBarbara/fbtheme";
 const BRANCH = "main";
 const CHECK_EVERY = 5 * 60 * 1000; // 5 минут
 
+// Стандартная чёрная тема Discord («Оникс»). С цветными и светлой темами
+// Discord красит интерфейс поверх TokyoMidnightBlack, и она выглядит неправильно.
+const BLACK_THEME = "midnight";
+const SWITCH_COOLDOWN = 15 * 1000;
+
 // always: true — скачать, даже если темы ещё нет в папке.
 const THEMES = [
   { file: "TokyoMidnightBlack.theme.css", name: "TokyoMidnightBlack", always: true },
@@ -33,16 +38,96 @@ module.exports = class FBThemeUpdater {
     this.meta = meta;
     this.timer = null;
     this.busy = false;
+    this.observer = null;
+    this.guardTimer = null;
+    this.lastSwitch = 0;
+    this.noticeShown = false;
   }
 
   start() {
     this.check();
     this.timer = setInterval(() => this.check(), CHECK_EVERY);
+
+    // следим за сменой темы Discord (меняются классы и стиль у <html>)
+    this.observer = new MutationObserver(() => this.scheduleGuard(800));
+    this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
+    this.scheduleGuard(2500); // даём Discord догрузиться
   }
 
   stop() {
     clearInterval(this.timer);
-    this.timer = null;
+    clearTimeout(this.guardTimer);
+    this.observer?.disconnect();
+    this.timer = this.observer = this.guardTimer = null;
+  }
+
+  // ─── чёрная тема Discord ──────────────────────────────────────────────
+
+  get autoBlack() {
+    return BdApi.Data.load(this.meta.name, "autoBlack") !== false;
+  }
+
+  set autoBlack(on) {
+    BdApi.Data.save(this.meta.name, "autoBlack", on);
+    if (on) this.scheduleGuard(0);
+  }
+
+  scheduleGuard(delay) {
+    clearTimeout(this.guardTimer);
+    this.guardTimer = setTimeout(() => this.guardTheme(), delay);
+  }
+
+  themeState() {
+    const html = document.documentElement;
+    const classes = [...html.classList];
+    let gradient = false;
+    try {
+      gradient = !!BdApi.Webpack.getStore?.("ClientThemesBackgroundStore")?.gradientPreset;
+    } catch {}
+    const custom = gradient
+      || classes.some((c) => c.startsWith("custom-theme"))
+      || html.style.getPropertyValue("--custom-theme-background") !== "";
+    const light = classes.includes("theme-light");
+    return { custom, light, bad: custom || light };
+  }
+
+  findThemeActions() {
+    const W = BdApi.Webpack;
+    try {
+      return W.getByKeys?.("saveClientTheme")
+        ?? W.getModule?.((m) => typeof m?.saveClientTheme === "function", { searchExports: true })
+        ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  guardTheme() {
+    if (!this.autoBlack) return;
+    const state = this.themeState();
+    if (!state.bad) return;
+    if (Date.now() - this.lastSwitch < SWITCH_COOLDOWN) return;
+    this.lastSwitch = Date.now();
+
+    const actions = this.findThemeActions();
+    if (actions) {
+      try {
+        // без backgroundGradientPresetId Discord убирает цветную тему
+        actions.saveClientTheme({ theme: BLACK_THEME });
+        BdApi.UI.showToast("🖤 Включила чёрную тему Discord — так TokyoMidnightBlack выглядит правильно", { type: "info", timeout: 6000 });
+        return;
+      } catch (err) {
+        console.error(`[${this.meta.name}] не получилось сменить тему`, err);
+      }
+    }
+
+    if (!this.noticeShown) {
+      this.noticeShown = true;
+      BdApi.UI.showNotice(
+        "TokyoMidnightBlack: включи в Discord стандартную чёрную тему — Настройки → Внешний вид → Тема → «Оникс». С цветными и светлой темами Discord она выглядит неправильно.",
+        { type: "warning" },
+      );
+    }
   }
 
   async get(url) {
@@ -99,6 +184,18 @@ module.exports = class FBThemeUpdater {
   getSettingsPanel() {
     const panel = document.createElement("div");
     panel.style.cssText = "display:flex;flex-direction:column;gap:12px;color:var(--text-normal);padding:8px 0";
+
+    const toggle = document.createElement("label");
+    toggle.style.cssText = "display:flex;align-items:center;gap:10px;cursor:pointer";
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = this.autoBlack;
+    box.style.cssText = "width:18px;height:18px;accent-color:#fff;cursor:pointer";
+    box.onchange = () => { this.autoBlack = box.checked; };
+    const label = document.createElement("span");
+    label.textContent = "Автоматически включать чёрную тему Discord («Оникс»), если выбрана цветная или светлая";
+    toggle.append(box, label);
+    panel.append(toggle);
 
     const text = document.createElement("div");
     text.textContent = `Проверяю ${REPO} каждые ${CHECK_EVERY / 60000} минут. Новая версия скачивается и применяется сама.`;
