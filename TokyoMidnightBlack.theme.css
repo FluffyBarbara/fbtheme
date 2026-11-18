@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.10.0
+ * @version 1.10.1
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.10.0
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.10.1
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5114,19 +5114,8 @@ box-shadow: 0 0 5px #e2e2e2 !important;
    ============================================================ */
 
 @keyframes tmbDotBlink {
-  0%, 100% {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-    box-shadow:
-      0 0 3px var(--tmb-dot-color),
-      0 0 9px rgba(255, 255, 255, 0.9),
-      0 0 18px rgba(255, 255, 255, 0.45);
-  }
-  50% {
-    opacity: 0.12;
-    transform: translateY(-50%) scale(0.6);
-    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
-  }
+  0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+  50%      { opacity: 0.12; transform: translateY(-50%) scale(0.6); }
 }
 
 [class*="modeSelected_"] [class*="link_"]::after,
@@ -5143,6 +5132,11 @@ box-shadow: 0 0 5px #e2e2e2 !important;
   z-index: 999;
   pointer-events: none;
   transform: translateY(-50%);
+  box-shadow:
+    0 0 3px var(--tmb-dot-color),
+    0 0 9px rgba(255, 255, 255, 0.9),
+    0 0 18px rgba(255, 255, 255, 0.45);
+  will-change: opacity, transform;
 }
 
 /* выбранный канал — яркая быстрая точка */
@@ -5192,7 +5186,7 @@ box-shadow: 0 0 5px #e2e2e2 !important;
 /* значок на кнопке «Домой» — светящаяся точка */
 [data-list-item-id="guildsnav___home"] [class*="childWrapper_"]::before {
   background-size: 62% !important;
-  animation: tmbGlow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
 
 ::selection {
@@ -5245,8 +5239,8 @@ box-shadow: 0 0 5px #e2e2e2 !important;
 }
 
 @keyframes tmbRise {
-  from { opacity: 0; transform: translateY(10px); filter: blur(4px); }
-  to   { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
 }
 
 @keyframes tmbFade {
@@ -5255,13 +5249,13 @@ box-shadow: 0 0 5px #e2e2e2 !important;
 }
 
 @keyframes tmbPop {
-  from { opacity: 0; transform: translateY(6px) scale(0.96); filter: blur(3px); }
-  to   { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
 }
 
 @keyframes tmbZoom {
-  from { opacity: 0; transform: scale(0.92); filter: blur(6px); }
-  to   { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: none; }
 }
 
 @keyframes tmbShine {
@@ -5274,10 +5268,7 @@ box-shadow: 0 0 5px #e2e2e2 !important;
   50%      { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
 }
 
-@keyframes tmbGlow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.25)); }
-  50%      { filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.55)); }
-}
+
 
 @keyframes tmbDrift {
   0%   { transform: translate3d(-10%, -6%, 0) scale(1); }
@@ -5380,7 +5371,7 @@ main[class*="chatContent_"] {
   transform: scale(0.94);
 }
 [class*="blobContainer_"][class*="selected_"] {
-  animation: tmbGlow 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
 nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
   background: #ffffff !important;
@@ -5393,8 +5384,8 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
    ============================================================ */
 
 @keyframes tmbSlideFromRight {
-  from { opacity: 0; transform: translateX(28px); filter: blur(6px); }
-  to   { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* панель: ширина и мин. ширина едут вместе, без рывка */
@@ -5458,22 +5449,18 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
 [class*="membersWrap_"] [class*="membersGroup_"] {
   opacity: 0 !important;
   transform: translateX(22px);
-  filter: blur(4px);
   transition:
     opacity 0.15s ease,
-    transform 0.2s ease,
-    filter 0.15s ease !important;
+    transform 0.2s ease !important;
 }
 
 [class*="membersWrap_"]:is(:hover, :focus-within) [class*="member_"] [class*="layout_"] > [class*="content_"],
 [class*="membersWrap_"]:is(:hover, :focus-within) [class*="membersGroup_"] {
   opacity: 1 !important;
   transform: none;
-  filter: none;
   transition:
     opacity 0.4s ease,
-    transform 0.55s var(--tmb-ease),
-    filter 0.4s ease !important;
+    transform 0.55s var(--tmb-ease) !important;
   transition-delay: calc(80ms + var(--tmb-i, 20) * 25ms) !important;
 }
 
@@ -5753,19 +5740,22 @@ li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
   mask-composite: exclude;
 }
 
-/* мягкое свечение наружу */
+/* свечение наружу — мягкое кольцо вокруг рамки */
 :is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::after {
-  inset: -1px;
+  inset: -2px;
   z-index: -1;
-  border-radius: 9px;
-  opacity: 0.28;
-  filter: blur(7px);
-  transition: opacity 0.35s ease, filter 0.35s ease;
+  padding: 3px;
+  border-radius: 10px;
+  opacity: 0.55;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  filter: blur(3px); /* статично, без анимации — не грузит */
+  transition: opacity 0.3s ease;
 }
 
 :is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]):hover [class*="roleCircle_"]::after {
-  opacity: 0.5;
-  filter: blur(9px);
+  opacity: 0.9;
 }
 
 /* заголовки групп в списке участников («Руководство проекта — 1»).
@@ -5845,14 +5835,9 @@ li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
    1. СТАТУСЫ СО СВЕЧЕНИЕМ
    ============================================================ */
 
-@keyframes tmbStatusBreath {
-  0%, 100% { filter: drop-shadow(0 0 2px var(--tmb-status-online)); }
-  50%      { filter: drop-shadow(0 0 6px var(--tmb-status-online)) drop-shadow(0 0 10px var(--tmb-status-online)); }
-}
-
 rect[mask*="status-online"] {
   fill: var(--tmb-status-online) !important;
-  animation: tmbStatusBreath 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px var(--tmb-status-online));
 }
 rect[mask*="status-idle"] {
   fill: var(--tmb-status-idle) !important;
@@ -5902,31 +5887,20 @@ rect[mask*="status-offline"] {
    3. СВЕТЯЩАЯСЯ ЛИНИЯ ОТВЕТА
    ============================================================ */
 
-@keyframes tmbReplyGlow {
-  0%, 100% { opacity: 0.5; }
-  50%      { opacity: 1; }
-}
-
 [class*="repliedMessage_"]::before,
 [class*="repliedMessageClickableSpine_"] {
   border-color: rgba(255, 255, 255, 0.75) !important;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
-  animation: tmbReplyGlow 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.7));
 }
 
 /* ============================================================
    4. ЛИНИЯ «НОВЫЕ СООБЩЕНИЯ»
    ============================================================ */
 
-/* родная линия Discord на своём месте — только белая и дышит свечением */
-@keyframes tmbNewGlow {
-  0%, 100% { box-shadow: 0 0 6px rgba(255, 255, 255, 0.35); }
-  50%      { box-shadow: 0 0 14px rgba(255, 255, 255, 0.7); }
-}
-
+/* родная линия Discord на своём месте — белая со свечением */
 [class*="divider_"][class*="isUnread_"] {
   border-top: 1px solid rgba(255, 255, 255, 0.85) !important;
-  animation: tmbNewGlow 2.4s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 /* дата на линии — аккуратная белая подпись вместо красной */
@@ -6029,30 +6003,43 @@ li[id^="chat-messages-"]:hover [class*="timestamp_"][class*="alt_"] {
    9. ЗНАЧКИ У СЕРВЕРОВ
    ============================================================ */
 
-@keyframes tmbBadgePingRed {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 90, 100, 0.7); }
-  70%  { box-shadow: 0 0 0 9px rgba(255, 90, 100, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 90, 100, 0); }
+/* пульс — отдельное кольцо, которое растёт и гаснет (только transform и opacity) */
+@keyframes tmbBadgeRing {
+  0%   { opacity: 0.8; transform: scale(1); }
+  70%  { opacity: 0; transform: scale(1.7); }
+  100% { opacity: 0; transform: scale(1.7); }
 }
 
-@keyframes tmbBadgePingWhite {
-  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
-  70%  { box-shadow: 0 0 0 9px rgba(255, 255, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+/* пульсируют только счётчики упоминаний у серверов */
+nav[class*="guilds_"] [class*="numberBadge_"] {
+  position: relative;
+  overflow: visible !important;
+}
+
+nav[class*="guilds_"] [class*="numberBadge_"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid var(--tmb-status-dnd);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: tmbBadgeRing 2.4s ease-out infinite;
 }
 
 [class*="numberBadge_"] {
   background: var(--tmb-status-dnd) !important;
   color: #ffffff !important;
   font-weight: 800 !important;
-  animation: tmbBadgePingRed 2s ease-out infinite !important;
+  box-shadow: 0 0 8px rgba(255, 90, 100, 0.55) !important;
+  animation: none !important; /* пульс делает лёгкое кольцо ниже */
 }
 
 [class*="textBadge_"]:not([class*="live"]):not([class*="voiceUser_"] [class*="textBadge_"]) {
   background: #ffffff !important;
   color: #000000 !important;
   font-weight: 800 !important;
-  animation: tmbBadgePingWhite 2s ease-out infinite;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
 }
 
 nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
@@ -6203,10 +6190,6 @@ form [class*="channelTextArea_"]:focus-within [class*="scrollableContainer_"] {
   transform: scale(0.9);
 }
 
-/* --- бейджи непрочитанных упоминаний дышат --- */
-[class*="numberBadge_"] {
-  animation: tmbBreath 2s ease-out infinite;
-}
 
 /* --- ссылки --- */
 [class*="markup_"] a {

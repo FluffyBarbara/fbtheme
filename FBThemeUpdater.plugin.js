@@ -2,7 +2,7 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.6.0
+ * @version 1.7.0
  * @description 🔄 Обновляет TokyoMidnightBlack, следит за чёрной темой Discord и подсвечивает роли их цветом.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -95,14 +95,17 @@ module.exports = class FBThemeUpdater {
   startRoles() {
     if (this.roleObserver) return;
     this.roleObserver = new MutationObserver(() => this.queueRoles());
-    // characterData — чтобы ловить смену счётчика в заголовках групп
-    this.roleObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+    this.roleObserver.observe(document.body, { childList: true, subtree: true });
+    // раз в 5 с — подхватить изменившиеся счётчики в заголовках групп
+    this.roleInterval = setInterval(() => this.queueRoles(), 5000);
     this.queueRoles();
   }
 
   stopRoles() {
     this.roleObserver?.disconnect();
     this.roleObserver = null;
+    clearInterval(this.roleInterval);
+    this.roleInterval = null;
     clearTimeout(this.roleTimer);
     this.roleTimer = null;
     for (const el of document.querySelectorAll(".tmb-role, .tmb-role-header")) {
@@ -113,10 +116,11 @@ module.exports = class FBThemeUpdater {
 
   queueRoles() {
     if (this.roleTimer) return;
+    // не чаще раза в 0.6 с и только когда открыт список участников
     this.roleTimer = setTimeout(() => {
       this.roleTimer = null;
-      this.paintRoles();
-    }, 200);
+      if (document.querySelector('[class*="membersGroup_"]')) this.paintRoles();
+    }, 600);
   }
 
   static parseColor(color) {
@@ -201,16 +205,6 @@ module.exports = class FBThemeUpdater {
 
   paintRoles() {
     try {
-      // плашки ролей: маленький элемент с одной цветной точкой внутри
-      for (const dot of document.querySelectorAll('[class*="roleCircle_"], [class*="roleDot_"]')) {
-        const pill = dot.parentElement?.closest('[role="listitem"], [class*="role_"]');
-        if (!pill || pill.querySelectorAll('[class*="roleCircle_"], [class*="roleDot_"]').length !== 1) continue;
-        if (pill.getBoundingClientRect().height > 40) continue; // не сообщение и не большой блок
-        const color = getComputedStyle(dot).backgroundColor;
-        const c = FBThemeUpdater.parseColor(color);
-        if (c && c.a > 0) FBThemeUpdater.mark(pill, "tmb-role", color);
-      }
-
       // заголовки групп в списке участников: цвет роли из Discord по названию,
       // а если не нашёлся — цвет большинства ников в группе
       const roleColors = this.guildRoleColors();
@@ -219,6 +213,8 @@ module.exports = class FBThemeUpdater {
         const m = text.match(/^(.*?)\s*[—–-]\s*([\d\s]+)$/);
         const name = (m ? m[1] : text).trim();
         const count = m ? m[2].replace(/\s/g, "") : "";
+        // уже раскрашен этим же названием и числом — ничего не пересчитываем
+        if (header.classList.contains("tmb-role-header") && header.dataset.tmbName === name && header.dataset.tmbCount === count) continue;
         const color = roleColors.get(name.toLowerCase()) || FBThemeUpdater.majorityColor(header);
 
         if (color && name) {
@@ -379,6 +375,57 @@ module.exports = class FBThemeUpdater {
     }
   }
 
+  // Отчёт для автора: что плагин видит в этом Discord (без личных данных, кроме названий ролей).
+  report() {
+    const W = BdApi.Webpack;
+    const out = { plugin: this.meta.version, betterdiscord: BdApi.version, time: new Date().toISOString() };
+    try {
+      const guildId = W.getStore?.("SelectedGuildStore")?.getGuildId?.();
+      const roleStore = W.getStore?.("GuildRoleStore");
+      const guildStore = W.getStore?.("GuildStore");
+      out.stores = {
+        getStore: typeof W.getStore,
+        SelectedGuildStore: !!W.getStore?.("SelectedGuildStore"),
+        guildSelected: !!guildId,
+        GuildRoleStore: !!roleStore,
+        GuildRoleStoreMethods: roleStore ? Object.getOwnPropertyNames(Object.getPrototypeOf(roleStore)).filter((k) => /role/i.test(k)) : [],
+        GuildStoreRoleMethods: guildStore ? Object.getOwnPropertyNames(Object.getPrototypeOf(guildStore)).filter((k) => /role/i.test(k)) : [],
+      };
+      out.rolesFound = [...this.guildRoleColors().entries()].slice(0, 12);
+    } catch (err) {
+      out.storesError = String(err);
+    }
+    const headers = [...document.querySelectorAll('[class*="membersGroup_"]')];
+    out.headers = headers.length;
+    out.headersPainted = headers.filter((h) => h.classList.contains("tmb-role-header")).length;
+    const h = headers[0];
+    if (h) {
+      out.firstHeader = {
+        tag: h.tagName,
+        className: String(h.className),
+        text: h.textContent?.slice(0, 60),
+        html: h.outerHTML.slice(0, 400),
+        parent: String(h.parentElement?.className || h.parentElement?.tagName),
+        next: String(h.nextElementSibling?.className || h.nextElementSibling?.tagName || "нет"),
+      };
+    } else {
+      out.memberListGuess = [...document.querySelectorAll('[class*="member"]')].slice(0, 5).map((e) => String(e.className).slice(0, 80));
+    }
+    return JSON.stringify(out, null, 2);
+  }
+
+  async copyReport() {
+    const text = this.report();
+    try {
+      if (window.DiscordNative?.clipboard?.copy) window.DiscordNative.clipboard.copy(text);
+      else await navigator.clipboard.writeText(text);
+      BdApi.UI.showToast("📋 Отчёт скопирован — вставь его в чат автору", { type: "success" });
+    } catch {
+      console.log(`[${this.meta.name}] отчёт:\n` + text);
+      BdApi.UI.showToast("Не получилось скопировать — отчёт в консоли (Ctrl+Shift+I)", { type: "error" });
+    }
+  }
+
   getSettingsPanel() {
     const panel = document.createElement("div");
     panel.style.cssText = "display:flex;flex-direction:column;gap:12px;color:var(--text-normal);padding:8px 0";
@@ -419,7 +466,12 @@ module.exports = class FBThemeUpdater {
       button.style.opacity = "1";
     };
 
-    panel.append(text, button);
+    const reportBtn = document.createElement("button");
+    reportBtn.textContent = "Скопировать отчёт для автора";
+    reportBtn.style.cssText = "align-self:flex-start;padding:8px 16px;border:0;border-radius:8px;background:rgba(255,255,255,.08);color:var(--text-normal);font-weight:600;cursor:pointer";
+    reportBtn.onclick = () => this.copyReport();
+
+    panel.append(text, button, reportBtn);
     return panel;
   }
 };
