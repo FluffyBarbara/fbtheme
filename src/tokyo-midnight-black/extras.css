@@ -572,7 +572,7 @@ section[class*="panels_"] button[role="switch"][aria-checked="true"]::after {
 /* ники цветом роли — мягкое свечение, при наведении ярче */
 [class*="username_"][style*="color"],
 [class*="nameAndDecorators_"] [style*="color"] {
-  text-shadow: 0 0 10px color-mix(in srgb, currentColor 38%, transparent) !important;
+  text-shadow: 0 0 8px color-mix(in srgb, currentColor 28%, transparent) !important;
   transition: text-shadow 0.35s ease !important;
 }
 
@@ -580,8 +580,8 @@ li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
 [class*="member_"]:hover [class*="username_"][style*="color"],
 [class*="member_"]:hover [class*="nameAndDecorators_"] [style*="color"] {
   text-shadow:
-    0 0 6px color-mix(in srgb, currentColor 70%, transparent),
-    0 0 18px color-mix(in srgb, currentColor 40%, transparent) !important;
+    0 0 6px color-mix(in srgb, currentColor 50%, transparent),
+    0 0 14px color-mix(in srgb, currentColor 25%, transparent) !important;
 }
 
 /* упоминания ролей @Роль — цветная таблетка */
@@ -743,53 +743,34 @@ rect[mask*="status-offline"] {
    4. ЛИНИЯ «НОВЫЕ СООБЩЕНИЯ»
    ============================================================ */
 
-@keyframes tmbNewRun {
-  0%   { left: 0;   opacity: 0; }
-  15%  { opacity: 1; }
-  85%  { opacity: 1; }
-  100% { left: 70%; opacity: 0; }
+/* родная линия Discord на своём месте — только белая и дышит свечением */
+@keyframes tmbNewGlow {
+  0%, 100% { box-shadow: 0 0 6px rgba(255, 255, 255, 0.35); }
+  50%      { box-shadow: 0 0 14px rgba(255, 255, 255, 0.7); }
 }
 
 [class*="divider_"][class*="isUnread_"] {
-  position: relative;
-  border: none !important;
-  overflow: visible;
+  border-top: 1px solid rgba(255, 255, 255, 0.85) !important;
+  animation: tmbNewGlow 2.4s ease-in-out infinite;
 }
 
-[class*="divider_"][class*="isUnread_"]::before {
-  content: "" !important;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent) !important;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-  pointer-events: none;
+/* дата на линии — аккуратная белая подпись вместо красной */
+[class*="divider_"][class*="isUnread_"] [class*="content_"] {
+  color: #f2f2f2 !important;
+  background: #050505 !important;
+  clip-path: none !important;
+  font-weight: 600 !important;
+  border-radius: 6px;
 }
 
-[class*="divider_"][class*="isUnread_"]::after {
-  content: "" !important;
-  position: absolute;
-  top: calc(50% - 1px);
-  width: 30%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, #ffffff, transparent) !important;
-  filter: blur(1px);
-  pointer-events: none;
-  animation: tmbNewRun 2.4s ease-in-out infinite;
-}
-
+/* плашка «НОВОЕ» — белая, на своём месте */
 [class*="unreadPill_"] {
-  position: relative;
-  z-index: 1;
-  padding: 2px 9px !important;
   border-radius: 99px !important;
   background: #ffffff !important;
   color: #000000 !important;
   font-weight: 800 !important;
-  letter-spacing: 0.1em;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.08em;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.55);
 }
 
 [class*="unreadPillCap"] {
@@ -908,37 +889,36 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
    10. КНОПКИ С БЛИКОМ
    ============================================================ */
 
-button:is([class*="lookFilled_"], [class*="button_"]) {
+/* Только обычные кнопки в окнах и меню. Панель звонка, демонстрации,
+   микрофона, шапку канала и поле ввода не трогаем — там свои иконки. */
+
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *) {
   position: relative;
   overflow: hidden;
 }
 
 /* главная — белая */
-button[class*="lookFilled_"][class*="colorBrand_"],
-button[class*="button_"][class*="primary_"]:not([class*="secondary"]):not([class*="critical"]):not([class*="danger"]) {
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorBrand_"], [class*="primary_"]):not([class*="secondary"]):not([class*="critical"]):not([class*="danger"]):not([class*="lookLink_"]):not([class*="lookOutlined_"]) {
   background: #ffffff !important;
   color: #000000 !important;
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15) !important;
 }
 
-/* обычная — стеклянная */
-button[class*="lookFilled_"]:is([class*="colorPrimary_"], [class*="colorTransparent_"]),
-button[class*="button_"][class*="secondary_"] {
+/* обычная — стеклянная (цвет текста и иконок остаётся родным) */
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorPrimary_"], [class*="colorTransparent_"], [class*="secondary_"]) {
   background: rgba(255, 255, 255, 0.07) !important;
-  color: #eeeeee !important;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
 }
 
 /* опасная — красная */
-button[class*="lookFilled_"]:is([class*="colorRed_"], [class*="colorDanger_"]),
-button[class*="button_"]:is([class*="critical"], [class*="danger"]) {
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorRed_"], [class*="colorDanger_"], [class*="critical"], [class*="danger"]) {
   background: rgba(255, 90, 100, 0.14) !important;
   color: var(--tmb-status-dnd) !important;
   box-shadow: inset 0 0 0 1px rgba(255, 90, 100, 0.4) !important;
 }
 
-/* блик */
-button:is([class*="lookFilled_"], [class*="button_"])::before {
+/* блик при наведении */
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *)::before {
   content: "";
   position: absolute;
   top: 0;
@@ -947,17 +927,16 @@ button:is([class*="lookFilled_"], [class*="button_"])::before {
   width: 50%;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   transform: skewX(-20deg);
   transition: left 0.6s var(--tmb-ease);
 }
 
-button[class*="lookFilled_"][class*="colorBrand_"]::before,
-button[class*="button_"][class*="primary_"]:not([class*="secondary"]):not([class*="critical"]):not([class*="danger"])::before {
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorBrand_"], [class*="primary_"]):not([class*="secondary"]):not([class*="critical"]):not([class*="danger"]):not([class*="lookLink_"]):not([class*="lookOutlined_"])::before {
   background: linear-gradient(100deg, transparent, rgba(0, 0, 0, 0.12), transparent);
 }
 
-button:is([class*="lookFilled_"], [class*="button_"]):hover::before {
+button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):hover::before {
   left: 130%;
 }
 
