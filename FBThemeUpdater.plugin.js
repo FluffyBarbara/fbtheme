@@ -2,7 +2,7 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.4.0
+ * @version 1.5.0
  * @description 🔄 Обновляет TokyoMidnightBlack, следит за чёрной темой Discord и подсвечивает роли их цветом.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -31,9 +31,19 @@ const SWITCH_COOLDOWN = 15 * 1000;
 // Что обновлять. always: true — скачать, даже если файла ещё нет.
 // Плагин обновляет и сам себя, чтобы новые возможности приходили всем.
 const FILES = [
-  { file: "TokyoMidnightBlack.theme.css", name: "TokyoMidnightBlack", always: true, folder: () => BdApi.Themes.folder, enable: (n) => BdApi.Themes.enable(n) },
-  { file: "FBThemeUpdater.plugin.js", name: "FBThemeUpdater", always: false, folder: () => BdApi.Plugins.folder },
+  { file: "TokyoMidnightBlack.theme.css", name: "TokyoMidnightBlack", marker: "@name TokyoMidnightBlack", always: true, folder: () => BdApi.Themes.folder, enable: (n) => BdApi.Themes.enable(n) },
+  { file: "FBThemeUpdater.plugin.js", name: "FBThemeUpdater", marker: "@name FBThemeUpdater", always: false, folder: () => BdApi.Plugins.folder },
 ];
+
+// Откуда качать — по очереди, пока что-то не ответит. У части провайдеров
+// GitHub не открывается, а зеркала jsDelivr работают.
+const MIRRORS = [
+  { host: "raw.githubusercontent.com", url: (f) => `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${f}` },
+  { host: "cdn.jsdelivr.net", url: (f) => `https://cdn.jsdelivr.net/gh/${REPO}@${BRANCH}/${f}` },
+  { host: "fastly.jsdelivr.net", url: (f) => `https://fastly.jsdelivr.net/gh/${REPO}@${BRANCH}/${f}` },
+  { host: "github.com", url: (f) => `https://github.com/${REPO}/raw/${BRANCH}/${f}` },
+];
+const TIMEOUT = 15 * 1000;
 
 module.exports = class FBThemeUpdater {
   constructor(meta) {
@@ -245,41 +255,59 @@ module.exports = class FBThemeUpdater {
     }
   }
 
-  async get(url) {
-    const request = BdApi.Net?.fetch ?? window.fetch.bind(window);
-    const res = await request(url, {
-      headers: { "Accept": "application/vnd.github+json", "User-Agent": "FBThemeUpdater" },
-    });
-    if (!res.ok) throw new Error(`${res.status} ${url}`);
-    return res.text();
+  async request(url, headers = {}) {
+    if (BdApi.Net?.fetch) {
+      return BdApi.Net.fetch(url, { headers: { "User-Agent": "FBThemeUpdater", ...headers }, timeout: TIMEOUT });
+    }
+    return window.fetch(url, { headers, cache: "no-store", signal: AbortSignal.timeout(TIMEOUT) });
+  }
+
+  // Скачивает файл с первого ответившего зеркала.
+  // Возвращает { text } или { unchanged: true }, если файл не менялся (ответ 304).
+  async download(item, localSize) {
+    const errors = [];
+    for (const mirror of MIRRORS) {
+      const url = mirror.url(item.file);
+      const cache = BdApi.Data.load(this.meta.name, "etag:" + url);
+      const headers = cache && cache.size === localSize ? { "If-None-Match": cache.etag } : {};
+      try {
+        const res = await this.request(url, headers);
+        if (res.status === 304) return { unchanged: true, host: mirror.host };
+        if (!res.ok) throw new Error(`ответ ${res.status}`);
+        const text = await res.text();
+        if (!text.includes(item.marker)) throw new Error("пришёл не тот файл");
+        const etag = res.headers?.get?.("etag");
+        if (etag) BdApi.Data.save(this.meta.name, "etag:" + url, { etag, size: new TextEncoder().encode(text).length });
+        return { text, host: mirror.host };
+      } catch (err) {
+        errors.push(`${mirror.host}: ${err?.message || err}`);
+      }
+    }
+    const err = new Error("нет связи ни с GitHub, ни с зеркалами");
+    err.details = errors;
+    throw err;
   }
 
   async check(manual = false) {
-    if (this.busy) return;
+    if (this.busy) return false;
     this.busy = true;
 
     try {
-      const commit = JSON.parse(await this.get(`https://api.github.com/repos/${REPO}/commits/${BRANCH}`));
-      const sha = commit.sha;
       const updated = [];
 
       for (const item of FILES) {
         const target = path.join(item.folder(), item.file);
         const exists = fs.existsSync(target);
-
         if (!exists && !item.always) continue;
-        if (exists && BdApi.Data.load(this.meta.name, item.file) === sha) continue;
 
-        // ссылка на конкретный коммит не кешируется — всегда свежая версия
-        const text = await this.get(`https://raw.githubusercontent.com/${REPO}/${sha}/${item.file}`);
+        const localSize = exists ? fs.statSync(target).size : -1;
+        const got = await this.download(item, localSize);
+        if (got.unchanged) continue;
+
         const local = exists ? fs.readFileSync(target, "utf8") : null;
-
-        // запоминаем до записи: после записи плагина BetterDiscord сразу его перезапустит
-        BdApi.Data.save(this.meta.name, item.file, sha);
-
-        if (local !== text) {
+        if (local !== got.text) {
           updated.push(item.name);
-          fs.writeFileSync(target, text, "utf8");
+          fs.writeFileSync(target, got.text, "utf8");
           if (!exists && item.enable) setTimeout(() => item.enable(item.name), 1500);
         }
       }
@@ -287,11 +315,15 @@ module.exports = class FBThemeUpdater {
       if (updated.length) {
         BdApi.UI.showToast(`🔄 Обновлено: ${updated.join(", ")}`, { type: "success" });
       } else if (manual) {
-        BdApi.UI.showToast("Темы уже последней версии", { type: "info" });
+        BdApi.UI.showToast("Тема уже последней версии", { type: "info" });
       }
+      return true;
     } catch (err) {
-      console.error(`[${this.meta.name}]`, err);
-      if (manual) BdApi.UI.showToast("Не получилось проверить обновления", { type: "error" });
+      console.error(`[${this.meta.name}] ${err.message}`, ...(err.details || []));
+      if (manual) {
+        BdApi.UI.showToast("Не получилось проверить обновления: нет связи с GitHub. Подробности — Ctrl+Shift+I → Console", { type: "error", timeout: 8000 });
+      }
+      return false;
     } finally {
       this.busy = false;
     }
@@ -321,15 +353,20 @@ module.exports = class FBThemeUpdater {
     );
 
     const text = document.createElement("div");
-    text.textContent = `Проверяю ${REPO} каждые ${CHECK_EVERY / 60000} минут. Новая версия скачивается и применяется сама.`;
+    text.textContent = `Проверяю обновления каждые ${CHECK_EVERY / 60000} минут: GitHub, а если он не открывается — зеркала jsDelivr. Новая версия скачивается и применяется сама.`;
 
     const button = document.createElement("button");
     button.textContent = "Проверить сейчас";
     button.style.cssText = "align-self:flex-start;padding:8px 16px;border:0;border-radius:8px;background:#fff;color:#000;font-weight:700;cursor:pointer";
-    button.onclick = () => {
-      // забыть сохранённые версии, чтобы точно сверить файлы заново
-      for (const item of FILES) BdApi.Data.delete(this.meta.name, item.file);
-      this.check(true);
+    button.onclick = async () => {
+      if (button.disabled) return;
+      button.disabled = true;
+      button.textContent = "Проверяю…";
+      button.style.opacity = "0.6";
+      await this.check(true);
+      button.disabled = false;
+      button.textContent = "Проверить сейчас";
+      button.style.opacity = "1";
     };
 
     panel.append(text, button);

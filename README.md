@@ -63,6 +63,11 @@
 
 В настройках плагина (шестерёнка) есть кнопка **«Проверить сейчас»**.
 
+Если GitHub у провайдера не открывается, плагин сам качает обновления через зеркала jsDelivr. Запасные ссылки для ручной загрузки:
+
+- плагин: https://cdn.jsdelivr.net/gh/FluffyBarbara/fbtheme@main/FBThemeUpdater.plugin.js
+- тема: https://cdn.jsdelivr.net/gh/FluffyBarbara/fbtheme@main/TokyoMidnightBlack.theme.css
+
 > ⚠️ Правки, сделанные прямо в файле темы на компьютере, затрутся при следующем обновлении. Меняй настройки в репозитории.
 
 ## Настройка

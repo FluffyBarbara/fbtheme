@@ -1,0 +1,21 @@
+name: Обновить зеркало jsDelivr
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "TokyoMidnightBlack.theme.css"
+      - "FBThemeUpdater.plugin.js"
+  workflow_dispatch:
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Сбросить кэш jsDelivr
+        run: |
+          for f in TokyoMidnightBlack.theme.css FBThemeUpdater.plugin.js; do
+            echo "→ $f"
+            curl -fsS "https://purge.jsdelivr.net/gh/FluffyBarbara/fbtheme@main/$f" || echo "не удалось сбросить $f"
+            echo
+          done

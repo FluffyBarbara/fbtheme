@@ -18,10 +18,10 @@ import (
 )
 
 const (
-	version   = "1.1.0"
+	version   = "1.2.0"
 	userAgent = "TokyoMidnightBlack-Setup/" + version
 
-	repoRaw     = "https://raw.githubusercontent.com/FluffyBarbara/fbtheme/main/"
+	repoPath    = "FluffyBarbara/fbtheme"
 	themeFile   = "TokyoMidnightBlack.theme.css"
 	themeName   = "TokyoMidnightBlack"
 	pluginFile  = "FBThemeUpdater.plugin.js"
@@ -210,6 +210,32 @@ func (p *progressReader) Read(b []byte) (int, error) {
 	return n, err
 }
 
+// Зеркала: у части провайдеров GitHub не открывается, а jsDelivr работает.
+var mirrors = []string{
+	"https://raw.githubusercontent.com/" + repoPath + "/main/",
+	"https://cdn.jsdelivr.net/gh/" + repoPath + "@main/",
+	"https://fastly.jsdelivr.net/gh/" + repoPath + "@main/",
+	"https://github.com/" + repoPath + "/raw/main/",
+}
+
+// Скачивает файл темы или плагина с первого ответившего зеркала
+// и проверяет, что пришёл именно он, а не страница-заглушка.
+func downloadAddon(file, marker string) ([]byte, error) {
+	var errs []string
+	for _, base := range mirrors {
+		data, _, err := download(base+file, nil)
+		if err == nil && !strings.Contains(string(data), marker) {
+			err = errors.New("пришёл не тот файл")
+		}
+		if err == nil {
+			return data, nil
+		}
+		host := strings.SplitN(strings.TrimPrefix(base, "https://"), "/", 2)[0]
+		errs = append(errs, host+": "+err.Error())
+	}
+	return nil, fmt.Errorf("нет связи ни с GitHub, ни с зеркалами (%s)", strings.Join(errs, "; "))
+}
+
 // ─── шаги ─────────────────────────────────────────────────────────────────
 
 func installDiscord(r reporter) ([]install, error) {
@@ -311,7 +337,7 @@ func installAddons(r reporter, list []install, opt options) error {
 
 	var done []string
 	for _, a := range addons {
-		data, _, err := download(repoRaw+a.file, nil)
+		data, err := downloadAddon(a.file, "@name "+a.name)
 		if err != nil {
 			return fmt.Errorf("не удалось скачать %s: %w", a.file, err)
 		}
