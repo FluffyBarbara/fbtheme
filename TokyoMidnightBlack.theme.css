@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.10.1
+ * @version 1.10.2
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.10.1
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.10.2
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5270,32 +5270,8 @@ box-shadow: 0 0 5px #e2e2e2 !important;
 
 
 
-@keyframes tmbDrift {
-  0%   { transform: translate3d(-10%, -6%, 0) scale(1); }
-  50%  { transform: translate3d(8%, 6%, 0) scale(1.15); }
-  100% { transform: translate3d(-10%, -6%, 0) scale(1); }
-}
 
-/* --- живой фон: медленно плывущий свет --- */
-[class^="bg_"],
-[class*=" bg_"] {
-  overflow: hidden;
-}
-
-[class^="bg_"]::after,
-[class*=" bg_"]::after {
-  content: "";
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  background:
-    radial-gradient(30% 25% at 30% 30%, rgba(255, 255, 255, 0.07), transparent 70%),
-    radial-gradient(25% 22% at 75% 70%, rgba(255, 255, 255, 0.05), transparent 70%);
-  animation: tmbDrift 40s ease-in-out infinite;
-  will-change: transform;
-}
-
-/* --- сообщения: всплывают из размытия, последние — по очереди --- */
+/* --- сообщения: всплывают по очереди --- */
 li[id^="chat-messages-"] {
   animation: tmbRise 0.55s var(--tmb-ease) backwards;
 }
@@ -6203,6 +6179,41 @@ form [class*="channelTextArea_"]:focus-within [class*="scrollableContainer_"] {
 [class*="scroller"]::-webkit-scrollbar-thumb {
   transition: background 0.3s ease;
 }
+
+/* ============================================================
+   ПРОИЗВОДИТЕЛЬНОСТЬ
+   Тяжёлые эффекты основы, которые постоянно пересчитываются,
+   выключены: размытие фона окна и размытие подложки у элементов,
+   которые видны всегда (градиент чата, непрочитанное и т. п.).
+   ============================================================ */
+
+[class^="bg_"],
+[class*=" bg_"] {
+  filter: none !important;
+  background-attachment: scroll !important;
+}
+
+[class*="chatGradientBase_"] {
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+:is(
+  .wrapper__44df5,
+  [class*="newMessagesBar"],
+  .clickable__081d7,
+  .card__73069,
+  .groupContent_ef8d95,
+  [class*="jumpToPresentBar_"],
+  .unread__3b95d,
+  [class*="newTopicsBarContainer_"],
+  .footerGradient_fcbddd
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 
 
 /*
