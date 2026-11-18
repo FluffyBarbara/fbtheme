@@ -579,16 +579,23 @@ li[id^="chat-messages-"]:hover span[class*="username_"][style*="color"] {
     0 0 14px -2px var(--tmb-role) !important;
 }
 
-/* заголовки групп в списке участников — вариант E «Тихая»:
-   белое название, цветная точка роли, число серым.
-   Плагин ставит класс .tmb-role-header и цвет роли в --tmb-role.
-   Размер заголовка не меняем — от него зависит прокрутка списка. */
+/* заголовки групп в списке участников: цветная точка, название цветом
+   роли с мягким свечением, число приглушённым цветом роли и тонкая линия,
+   тающая вправо. Всё статично. Плагин ставит класс .tmb-role-header и
+   цвет роли в --tmb-role. Размер заголовка не меняем — от него зависит
+   прокрутка списка. */
+.tmb-role-header {
+  /* тёмные цвета ролей чуть осветляем, чтобы читались на чёрном */
+  --tmb-role-text: color-mix(in srgb, var(--tmb-role) 72%, #ffffff);
+}
+
 .tmb-role-header [class*="membersGroupHeader_"] {
   display: flex;
   align-items: center;
   min-width: 0;
 }
 
+/* точка */
 .tmb-role-header [class*="membersGroupHeader_"]::before,
 .tmb-role-header[data-tmb-flat]::before {
   content: "";
@@ -599,24 +606,39 @@ li[id^="chat-messages-"]:hover span[class*="username_"][style*="color"] {
   margin: 0 8px 0 1px;
   border-radius: 50%;
   vertical-align: middle;
-  background: var(--tmb-role);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tmb-role) 22%, transparent);
+  background: var(--tmb-role-text);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--tmb-role) 25%, transparent),
+    0 0 10px color-mix(in srgb, var(--tmb-role) 70%, transparent);
 }
 
+/* название */
 .tmb-role-header [class*="membersGroupName_"],
 .tmb-role-header[data-tmb-flat] {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #ececec !important;
+  color: var(--tmb-role-text) !important;
   font-weight: 700 !important;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--tmb-role) 55%, transparent);
 }
 
+/* число */
 .tmb-role-header [class*="membersGroupHeader_"] > span:not([class*="membersGroupName_"]) {
   flex: none;
   white-space: pre;
-  color: #6f6f6f !important;
+  color: color-mix(in srgb, var(--tmb-role-text) 55%, #555555) !important;
+}
+
+/* тонкая линия цвета роли, тающая вправо */
+.tmb-role-header [class*="membersGroupHeader_"]::after {
+  content: "";
+  flex: 1 1 auto;
+  min-width: 12px;
+  height: 1px;
+  margin-left: 10px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tmb-role) 65%, transparent), transparent);
 }
 
 /* ============================================================
