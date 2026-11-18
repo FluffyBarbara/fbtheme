@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.10.2
+ * @version 1.11.0
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.10.2
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.11.0
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5639,19 +5639,14 @@ section[class*="panels_"] button[role="switch"][aria-checked="true"]::after {
    FBThemeUpdater: он ставит класс .tmb-role и цвет в --tmb-role.
    ============================================================ */
 
-/* ники цветом роли — мягкое свечение, при наведении ярче */
-[class*="username_"][style*="color"],
-[class*="nameAndDecorators_"] [style*="color"] {
-  text-shadow: 0 0 8px color-mix(in srgb, currentColor 28%, transparent) !important;
-  transition: text-shadow 0.35s ease !important;
+/* ники цветом роли: в списке участников мягко светятся,
+   в чате свечение появляется при наведении на сообщение */
+[class*="membersWrap_"] span[class*="username_"][style*="color"] {
+  text-shadow: 0 0 8px color-mix(in srgb, currentColor 28%, transparent);
 }
 
-li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
-[class*="member_"]:hover [class*="username_"][style*="color"],
-[class*="member_"]:hover [class*="nameAndDecorators_"] [style*="color"] {
-  text-shadow:
-    0 0 6px color-mix(in srgb, currentColor 50%, transparent),
-    0 0 14px color-mix(in srgb, currentColor 25%, transparent) !important;
+li[id^="chat-messages-"]:hover span[class*="username_"][style*="color"] {
+  text-shadow: 0 0 8px color-mix(in srgb, currentColor 45%, transparent) !important;
 }
 
 /* упоминания ролей @Роль — цветная таблетка */
@@ -5672,164 +5667,83 @@ li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
 }
 
 /* плашки ролей в профиле — неоновая обводка цвета роли.
-   Цвет берём с точки роли: её ::before и ::after растягиваются на всю
-   плашку и наследуют цвет точки (background-color: inherit). Плагин не нужен. */
-
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) {
-  position: relative !important;
-  isolation: isolate;
-  overflow: visible !important;
+   Плагин ставит класс .tmb-role-pill и цвет роли в --tmb-role.
+   Только тени, без размытия и сложных селекторов — не грузит. */
+.tmb-role-pill {
   border: 0 !important;
   border-radius: 8px !important;
-  background: rgba(255, 255, 255, 0.035) !important;
-  box-shadow: none !important;
-  transition: transform 0.35s var(--tmb-spring) !important;
+  background: color-mix(in srgb, var(--tmb-role) 10%, rgba(255, 255, 255, 0.03)) !important;
+  box-shadow:
+    inset 0 0 0 1px var(--tmb-role),
+    0 0 10px -3px var(--tmb-role) !important;
+  transition: box-shadow 0.3s ease, transform 0.3s var(--tmb-spring) !important;
 }
 
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]):hover {
+.tmb-role-pill:hover {
   transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px var(--tmb-role),
+    0 0 14px -2px var(--tmb-role) !important;
 }
 
-/* всё между плашкой и точкой — без позиционирования,
-   чтобы слои точки легли на всю плашку */
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) > *:has(> [class*="roleCircle_"]),
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"] {
-  position: static !important;
-}
-
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::before,
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  background-color: inherit;
-}
-
-/* рамка цвета роли */
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::before {
-  inset: 0;
-  padding: 1px;
-  border-radius: 8px;
-  opacity: 0.9;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-}
-
-/* свечение наружу — мягкое кольцо вокруг рамки */
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::after {
-  inset: -2px;
-  z-index: -1;
-  padding: 3px;
-  border-radius: 10px;
-  opacity: 0.55;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  filter: blur(3px); /* статично, без анимации — не грузит */
-  transition: opacity 0.3s ease;
-}
-
-:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]):hover [class*="roleCircle_"]::after {
-  opacity: 0.9;
-}
-
-/* заголовки групп в списке участников («Руководство проекта — 1»).
-   Плагин ставит класс .tmb-role-header, цвет роли в --tmb-role,
-   название в data-tmb-name и число в data-tmb-count.
-   Размер самого заголовка не меняем — от него зависит прокрутка списка. */
-
-.tmb-role-header[data-tmb-name] {
-  display: flex !important;
+/* заголовки групп в списке участников — вариант E «Тихая»:
+   белое название, цветная точка роли, число серым.
+   Плагин ставит класс .tmb-role-header и цвет роли в --tmb-role.
+   Размер заголовка не меняем — от него зависит прокрутка списка. */
+.tmb-role-header [class*="membersGroupHeader_"] {
+  display: flex;
   align-items: center;
-  justify-content: flex-start !important;
-  gap: 0 !important;
-  overflow: visible !important;
-  font-size: 0 !important;
-  color: transparent !important;
-  text-shadow: none !important;
+  min-width: 0;
 }
 
-.tmb-role-header[data-tmb-name] > * {
-  display: none !important;
+.tmb-role-header [class*="membersGroupHeader_"]::before,
+.tmb-role-header[data-tmb-flat]::before {
+  content: "";
+  flex: none;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin: 0 8px 0 1px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--tmb-role);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tmb-role) 22%, transparent);
 }
 
-/* название: светящаяся полоска слева, мягкая подсветка, текст цветом роли */
-.tmb-role-header[data-tmb-name]::before {
-  content: attr(data-tmb-name);
-  flex: 0 1 auto;
+.tmb-role-header [class*="membersGroupName_"],
+.tmb-role-header[data-tmb-flat] {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 2px 8px 2px 11px;
-  border-left: 3px solid;
-  border-image: linear-gradient(180deg,
-    color-mix(in srgb, var(--tmb-role) 20%, transparent),
-    var(--tmb-role) 30%, var(--tmb-role) 70%,
-    color-mix(in srgb, var(--tmb-role) 20%, transparent)) 1;
-  background: linear-gradient(90deg,
-    color-mix(in srgb, var(--tmb-role) 16%, transparent),
-    transparent 85%);
-  box-shadow: -6px 0 12px -6px var(--tmb-role);
-  font-size: 13px;
-  line-height: 18px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: color-mix(in srgb, var(--tmb-role) 78%, #ffffff);
-  text-shadow: 0 0 10px color-mix(in srgb, var(--tmb-role) 45%, transparent);
+  color: #ececec !important;
+  font-weight: 700 !important;
 }
 
-/* счётчик — кружок с цветной рамкой и свечением */
-.tmb-role-header[data-tmb-name]::after {
-  content: attr(data-tmb-count);
+.tmb-role-header [class*="membersGroupHeader_"] > span:not([class*="membersGroupName_"]) {
   flex: none;
-  margin-left: 4px;
-  min-width: 20px;
-  height: 18px;
-  padding: 0 6px;
-  border-radius: 99px;
-  display: grid;
-  place-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  color: #ffffff;
-  background: color-mix(in srgb, var(--tmb-role) 22%, transparent);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--tmb-role) 70%, transparent),
-    0 0 10px -2px color-mix(in srgb, var(--tmb-role) 65%, transparent);
-}
-
-.tmb-role-header[data-tmb-count=""]::after {
-  display: none;
+  white-space: pre;
+  color: #6f6f6f !important;
 }
 
 /* ============================================================
-   1. СТАТУСЫ СО СВЕЧЕНИЕМ
+   1. СТАТУСЫ СВОИМ ЦВЕТОМ
    ============================================================ */
 
 rect[mask*="status-online"] {
   fill: var(--tmb-status-online) !important;
-  filter: drop-shadow(0 0 4px var(--tmb-status-online));
 }
 rect[mask*="status-idle"] {
   fill: var(--tmb-status-idle) !important;
-  filter: drop-shadow(0 0 4px var(--tmb-status-idle));
 }
 rect[mask*="status-dnd"] {
   fill: var(--tmb-status-dnd) !important;
-  filter: drop-shadow(0 0 4px var(--tmb-status-dnd));
 }
 rect[mask*="status-streaming"] {
   fill: var(--tmb-status-stream) !important;
-  filter: drop-shadow(0 0 4px var(--tmb-status-stream));
 }
 rect[mask*="status-offline"] {
   fill: var(--tmb-status-offline) !important;
-  filter: none;
 }
 
 /* ============================================================
@@ -6027,36 +5941,34 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
    10. КНОПКИ С БЛИКОМ
    ============================================================ */
 
-/* Только обычные кнопки в окнах и меню. Панель звонка, демонстрации,
-   микрофона, шапку канала и поле ввода не трогаем — там свои иконки. */
-
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *) {
+/* Только кнопки в окнах и всплывающих карточках — простые селекторы. */
+[role="dialog"] button[class*="lookFilled_"] {
   position: relative;
   overflow: hidden;
 }
 
 /* главная — белая */
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorBrand_"], [class*="primary_"]):not([class*="secondary"]):not([class*="critical"]):not([class*="danger"]):not([class*="lookLink_"]):not([class*="lookOutlined_"]) {
+[role="dialog"] button[class*="lookFilled_"][class*="colorBrand_"] {
   background: #ffffff !important;
   color: #000000 !important;
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15) !important;
 }
 
-/* обычная — стеклянная (цвет текста и иконок остаётся родным) */
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorPrimary_"], [class*="colorTransparent_"], [class*="secondary_"]) {
+/* обычная — стеклянная (цвет текста и иконок родной) */
+[role="dialog"] button[class*="lookFilled_"][class*="colorPrimary_"] {
   background: rgba(255, 255, 255, 0.07) !important;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
 }
 
 /* опасная — красная */
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorRed_"], [class*="colorDanger_"], [class*="critical"], [class*="danger"]) {
+[role="dialog"] button[class*="lookFilled_"][class*="colorRed_"] {
   background: rgba(255, 90, 100, 0.14) !important;
   color: var(--tmb-status-dnd) !important;
   box-shadow: inset 0 0 0 1px rgba(255, 90, 100, 0.4) !important;
 }
 
 /* блик при наведении */
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *)::before {
+[role="dialog"] button[class*="lookFilled_"]::before {
   content: "";
   position: absolute;
   top: 0;
@@ -6070,11 +5982,11 @@ button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="pa
   transition: left 0.6s var(--tmb-ease);
 }
 
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):is([class*="colorBrand_"], [class*="primary_"]):not([class*="secondary"]):not([class*="critical"]):not([class*="danger"]):not([class*="lookLink_"]):not([class*="lookOutlined_"])::before {
+[role="dialog"] button[class*="lookFilled_"][class*="colorBrand_"]::before {
   background: linear-gradient(100deg, transparent, rgba(0, 0, 0, 0.12), transparent);
 }
 
-button:is([class*="lookFilled_"], [class*="button_"]):not(:is(section[class*="panels_"], [class*="actionButtons_"], [class*="toolbar_"], [class*="channelTextArea_"], [class*="controls_"], [class*="Controls_"], [class*="voiceUser_"], [class*="callContainer_"]) *):hover::before {
+[role="dialog"] button[class*="lookFilled_"]:hover::before {
   left: 130%;
 }
 

@@ -2,7 +2,7 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.7.0
+ * @version 1.8.0
  * @description 🔄 Обновляет TokyoMidnightBlack, следит за чёрной темой Discord и подсвечивает роли их цветом.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -108,9 +108,12 @@ module.exports = class FBThemeUpdater {
     this.roleInterval = null;
     clearTimeout(this.roleTimer);
     this.roleTimer = null;
-    for (const el of document.querySelectorAll(".tmb-role, .tmb-role-header")) {
-      el.classList.remove("tmb-role", "tmb-role-header");
+    for (const el of document.querySelectorAll(".tmb-role-pill, .tmb-role-header")) {
+      el.classList.remove("tmb-role-pill", "tmb-role-header");
       el.style.removeProperty("--tmb-role");
+      delete el.dataset.tmbName;
+      delete el.dataset.tmbCount;
+      delete el.dataset.tmbFlat;
     }
   }
 
@@ -119,7 +122,7 @@ module.exports = class FBThemeUpdater {
     // не чаще раза в 0.6 с и только когда открыт список участников
     this.roleTimer = setTimeout(() => {
       this.roleTimer = null;
-      if (document.querySelector('[class*="membersGroup_"]')) this.paintRoles();
+      if (document.querySelector('[class*="membersGroup_"], [class*="roleCircle_"]')) this.paintRoles();
     }, 600);
   }
 
@@ -157,8 +160,10 @@ module.exports = class FBThemeUpdater {
       if (guildId) {
         const roleStore = W.getStore?.("GuildRoleStore");
         const guildStore = W.getStore?.("GuildStore");
-        const roles = roleStore?.getRolesSnapshot?.(guildId)
+        const roles = roleStore?.getUnsafeMutableRoles?.(guildId)
+          ?? roleStore?.getRolesSnapshot?.(guildId)
           ?? roleStore?.getRoles?.(guildId)
+          ?? roleStore?.getManyRoles?.(guildId)
           ?? guildStore?.getRoles?.(guildId)
           ?? guildStore?.getGuild?.(guildId)?.roles
           ?? {};
@@ -188,9 +193,10 @@ module.exports = class FBThemeUpdater {
     let total = 0;
     for (let el = anchor.nextElementSibling; el && total < 15; el = el.nextElementSibling) {
       if (el.matches('[class*="membersGroup_"]') || el.querySelector('[class*="membersGroup_"]')) break;
-      const name = el.querySelector('[class*="username_"]');
-      if (!name) continue;
-      const color = getComputedStyle(name).color;
+      // цвет роли React ставит прямо в style — читаем его, без пересчёта стилей
+      const colored = el.querySelector('[class*="username_"][style*="color"], [class*="name_"] [style*="color"]');
+      const color = colored?.style.color;
+      if (!color) continue;
       counts.set(color, (counts.get(color) || 0) + 1);
       total++;
     }
@@ -205,26 +211,48 @@ module.exports = class FBThemeUpdater {
 
   paintRoles() {
     try {
+      // плашки ролей в профиле: точка роли → её плашка
+      for (const dot of document.querySelectorAll('[class*="roleCircle_"]')) {
+        let pill = dot.parentElement;
+        if (pill && /roleRemoveButton/i.test(String(pill.className))) pill = pill.parentElement;
+        if (!pill || pill.classList.contains("tmb-role-pill")) continue;
+        const color = dot.style.backgroundColor;
+        if (color) FBThemeUpdater.mark(pill, "tmb-role-pill", color);
+      }
+
       // заголовки групп в списке участников: цвет роли из Discord по названию,
       // а если не нашёлся — цвет большинства ников в группе
       const roleColors = this.guildRoleColors();
       for (const header of document.querySelectorAll('[class*="membersGroup_"]')) {
-        const text = (header.textContent || "").replace(/\s+/g, " ").trim();
-        const m = text.match(/^(.*?)\s*[—–-]\s*([\d\s]+)$/);
-        const name = (m ? m[1] : text).trim();
-        const count = m ? m[2].replace(/\s/g, "") : "";
+        const nameEl = header.querySelector('[class*="membersGroupName_"]');
+        let name;
+        let count;
+        if (nameEl) {
+          name = nameEl.textContent.trim();
+          count = (nameEl.parentElement?.textContent || "").replace(name, "").replace(/\D/g, "");
+        } else {
+          // старая разметка: «Название — 5» одним текстом (без скрытой подписи)
+          const visible = [...header.childNodes].filter((n) => !/hiddenVisually/i.test(String(n.className || ""))).map((n) => n.textContent).join("");
+          const m = visible.replace(/\s+/g, " ").trim().match(/^(.*?)\s*[—–-]\s*([\d\s]+)$/);
+          name = (m ? m[1] : visible).trim();
+          count = m ? m[2].replace(/\s/g, "") : "";
+        }
+
         // уже раскрашен этим же названием и числом — ничего не пересчитываем
         if (header.classList.contains("tmb-role-header") && header.dataset.tmbName === name && header.dataset.tmbCount === count) continue;
         const color = roleColors.get(name.toLowerCase()) || FBThemeUpdater.majorityColor(header);
 
         if (color && name) {
           FBThemeUpdater.mark(header, "tmb-role-header", color);
-          if (header.dataset.tmbName !== name) header.dataset.tmbName = name;
-          if (header.dataset.tmbCount !== count) header.dataset.tmbCount = count;
+          header.dataset.tmbName = name;
+          header.dataset.tmbCount = count;
+          if (nameEl) delete header.dataset.tmbFlat;
+          else header.dataset.tmbFlat = "";
         } else {
           FBThemeUpdater.unmark(header, "tmb-role-header");
           delete header.dataset.tmbName;
           delete header.dataset.tmbCount;
+          delete header.dataset.tmbFlat;
         }
       }
     } catch (err) {
@@ -395,6 +423,9 @@ module.exports = class FBThemeUpdater {
     } catch (err) {
       out.storesError = String(err);
     }
+    const dot = document.querySelector('[class*="roleCircle_"]');
+    if (dot) out.rolePill = (dot.parentElement?.parentElement?.outerHTML || "").slice(0, 400);
+    out.rolePillsPainted = document.querySelectorAll(".tmb-role-pill").length;
     const headers = [...document.querySelectorAll('[class*="membersGroup_"]')];
     out.headers = headers.length;
     out.headersPainted = headers.filter((h) => h.classList.contains("tmb-role-header")).length;
