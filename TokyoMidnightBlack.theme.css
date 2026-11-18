@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.8.0
+ * @version 1.8.1
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.8.0
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.8.1
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5901,47 +5901,6 @@ rect[mask*="status-offline"] {
 
 [class*="unreadPillCap"] {
   display: none !important;
-}
-
-/* ============================================================
-   5. ПЛАШКА «В ЭФИРЕ»
-   ============================================================ */
-
-@keyframes tmbLiveDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.25; transform: scale(0.6); }
-}
-
-:is([class*="live_"], [class*="liveSmall_"], [class*="liveLarge_"], [class*="liveBadge_"])[class*="textBadge"],
-[class*="voiceUser_"] [class*="textBadge_"],
-[class*="liveSmall_"],
-[class*="liveLarge_"],
-[class*="liveBadge_"] {
-  display: inline-flex !important;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px 2px 7px !important;
-  border-radius: 99px !important;
-  background: linear-gradient(90deg, #ff3355, #ff6b4a) !important;
-  color: #ffffff !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.06em;
-  box-shadow: 0 0 14px rgba(255, 60, 90, 0.55);
-}
-
-:is([class*="live_"], [class*="liveSmall_"], [class*="liveLarge_"], [class*="liveBadge_"])[class*="textBadge"]::before,
-[class*="voiceUser_"] [class*="textBadge_"]::before,
-[class*="liveSmall_"]::before,
-[class*="liveLarge_"]::before,
-[class*="liveBadge_"]::before {
-  content: "";
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 0 6px #ffffff;
-  animation: tmbLiveDot 1.2s ease-in-out infinite;
 }
 
 /* ============================================================
