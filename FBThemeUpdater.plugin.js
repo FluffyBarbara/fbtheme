@@ -2,8 +2,8 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.3.0
- * @description 🔄 Сам скачивает свежие версии TokyoMidnightBlack и следит, чтобы в Discord была включена чёрная тема.
+ * @version 1.4.0
+ * @description 🔄 Обновляет TokyoMidnightBlack, следит за чёрной темой Discord и подсвечивает роли их цветом.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
  */
@@ -44,6 +44,8 @@ module.exports = class FBThemeUpdater {
     this.guardTimer = null;
     this.lastSwitch = 0;
     this.noticeShown = false;
+    this.roleObserver = null;
+    this.roleTimer = null;
   }
 
   start() {
@@ -54,6 +56,8 @@ module.exports = class FBThemeUpdater {
     this.observer = new MutationObserver(() => this.scheduleGuard(800));
     this.observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
     this.scheduleGuard(2500); // даём Discord догрузиться
+
+    if (this.roleColors) this.startRoles();
   }
 
   stop() {
@@ -61,6 +65,115 @@ module.exports = class FBThemeUpdater {
     clearTimeout(this.guardTimer);
     this.observer?.disconnect();
     this.timer = this.observer = this.guardTimer = null;
+    this.stopRoles();
+  }
+
+  // ─── цвета ролей ──────────────────────────────────────────────────────
+  // Плашкам ролей в профиле и заголовкам групп в списке участников
+  // ставим класс и цвет роли в --tmb-role, а красит их уже тема.
+
+  get roleColors() {
+    return BdApi.Data.load(this.meta.name, "roleColors") !== false;
+  }
+
+  set roleColors(on) {
+    BdApi.Data.save(this.meta.name, "roleColors", on);
+    if (on) this.startRoles();
+    else this.stopRoles();
+  }
+
+  startRoles() {
+    if (this.roleObserver) return;
+    this.roleObserver = new MutationObserver(() => this.queueRoles());
+    this.roleObserver.observe(document.body, { childList: true, subtree: true });
+    this.queueRoles();
+  }
+
+  stopRoles() {
+    this.roleObserver?.disconnect();
+    this.roleObserver = null;
+    clearTimeout(this.roleTimer);
+    this.roleTimer = null;
+    for (const el of document.querySelectorAll(".tmb-role, .tmb-role-header")) {
+      el.classList.remove("tmb-role", "tmb-role-header");
+      el.style.removeProperty("--tmb-role");
+    }
+  }
+
+  queueRoles() {
+    if (this.roleTimer) return;
+    this.roleTimer = setTimeout(() => {
+      this.roleTimer = null;
+      this.paintRoles();
+    }, 200);
+  }
+
+  static parseColor(color) {
+    const m = color && color.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/);
+    if (!m) return null;
+    return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] };
+  }
+
+  // цвет «настоящий»: заметный и не серый
+  static isRoleColor(color) {
+    const c = FBThemeUpdater.parseColor(color);
+    return !!c && c.a > 0.3 && Math.max(c.r, c.g, c.b) - Math.min(c.r, c.g, c.b) > 30;
+  }
+
+  static mark(el, cls, color) {
+    if (el.style.getPropertyValue("--tmb-role") !== color) el.style.setProperty("--tmb-role", color);
+    if (!el.classList.contains(cls)) el.classList.add(cls);
+  }
+
+  static unmark(el, cls) {
+    if (!el.classList.contains(cls)) return;
+    el.classList.remove(cls);
+    el.style.removeProperty("--tmb-role");
+  }
+
+  paintRoles() {
+    try {
+      // плашки ролей: маленький элемент с одной цветной точкой внутри
+      for (const dot of document.querySelectorAll('[class*="roleCircle_"], [class*="roleDot_"]')) {
+        const pill = dot.parentElement?.closest('[role="listitem"], [class*="role_"]');
+        if (!pill || pill.querySelectorAll('[class*="roleCircle_"], [class*="roleDot_"]').length !== 1) continue;
+        if (pill.getBoundingClientRect().height > 40) continue; // не сообщение и не большой блок
+        const color = getComputedStyle(dot).backgroundColor;
+        const c = FBThemeUpdater.parseColor(color);
+        if (c && c.a > 0) FBThemeUpdater.mark(pill, "tmb-role", color);
+      }
+
+      // заголовки групп: цвет, который у большинства участников группы
+      for (const header of document.querySelectorAll('[class*="membersWrap_"] [class*="membersGroup_"]')) {
+        let anchor = header;
+        while (!anchor.nextElementSibling && anchor.parentElement?.children.length === 1) anchor = anchor.parentElement;
+
+        const counts = new Map();
+        let total = 0;
+        for (let el = anchor.nextElementSibling; el && total < 15; el = el.nextElementSibling) {
+          if (el.matches('[class*="membersGroup_"]') || el.querySelector('[class*="membersGroup_"]')) break;
+          const name = el.querySelector('[class*="username_"]');
+          if (!name) continue;
+          const color = getComputedStyle(name).color;
+          counts.set(color, (counts.get(color) || 0) + 1);
+          total++;
+        }
+
+        let best = null;
+        let bestCount = 0;
+        for (const [color, count] of counts) {
+          if (count > bestCount) [best, bestCount] = [color, count];
+        }
+
+        if (best && FBThemeUpdater.isRoleColor(best) && bestCount >= Math.ceil(total * 0.6)) {
+          FBThemeUpdater.mark(header, "tmb-role-header", best);
+        } else {
+          FBThemeUpdater.unmark(header, "tmb-role-header");
+        }
+      }
+    } catch (err) {
+      console.error(`[${this.meta.name}] подсветка ролей`, err);
+    }
   }
 
   // ─── чёрная тема Discord ──────────────────────────────────────────────
@@ -188,17 +301,24 @@ module.exports = class FBThemeUpdater {
     const panel = document.createElement("div");
     panel.style.cssText = "display:flex;flex-direction:column;gap:12px;color:var(--text-normal);padding:8px 0";
 
-    const toggle = document.createElement("label");
-    toggle.style.cssText = "display:flex;align-items:center;gap:10px;cursor:pointer";
-    const box = document.createElement("input");
-    box.type = "checkbox";
-    box.checked = this.autoBlack;
-    box.style.cssText = "width:18px;height:18px;accent-color:#fff;cursor:pointer";
-    box.onchange = () => { this.autoBlack = box.checked; };
-    const label = document.createElement("span");
-    label.textContent = "Автоматически включать чёрную тему Discord («Оникс»), если выбрана цветная или светлая";
-    toggle.append(box, label);
-    panel.append(toggle);
+    const toggle = (text, key) => {
+      const row = document.createElement("label");
+      row.style.cssText = "display:flex;align-items:center;gap:10px;cursor:pointer";
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = this[key];
+      box.style.cssText = "width:18px;height:18px;accent-color:#fff;cursor:pointer;flex:none";
+      box.onchange = () => { this[key] = box.checked; };
+      const label = document.createElement("span");
+      label.textContent = text;
+      row.append(box, label);
+      return row;
+    };
+
+    panel.append(
+      toggle("Автоматически включать чёрную тему Discord («Оникс»), если выбрана цветная или светлая", "autoBlack"),
+      toggle("Подсвечивать роли их цветом: плашки в профиле и заголовки групп участников", "roleColors"),
+    );
 
     const text = document.createElement("div");
     text.textContent = `Проверяю ${REPO} каждые ${CHECK_EVERY / 60000} минут. Новая версия скачивается и применяется сама.`;

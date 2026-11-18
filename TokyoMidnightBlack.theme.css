@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.6.0
+ * @version 1.7.0
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.6.0
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.7.0
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5559,14 +5559,6 @@ nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
   box-shadow: -6px 0 18px -10px rgba(255, 255, 255, 0.45) !important;
 }
 
-/* ник светится цветом своей роли */
-[class*="membersWrap_"] [class*="member_"] [class*="username_"] {
-  transition: text-shadow 0.4s ease !important;
-}
-
-[class*="membersWrap_"] [class*="member_"]:hover [class*="username_"] {
-  text-shadow: 0 0 12px color-mix(in srgb, currentColor 60%, transparent) !important;
-}
 
 /* лёгкий сдвиг строки при наведении */
 [class*="member_"] [class*="layout_"] {
@@ -5667,6 +5659,110 @@ section[class*="panels_"] button[role="switch"][aria-checked="true"]::after {
   opacity: 0;
   pointer-events: none;
   animation: tmbMuteRing 1.8s ease-out var(--tmb-mute-hot) infinite;
+}
+
+/* ============================================================
+   РОЛИ — ВСЁ СВЕТИТСЯ ЦВЕТОМ СВОЕЙ РОЛИ
+   Ники и упоминания красятся чистым CSS (цвет уже на элементе).
+   Плашки ролей в профиле и заголовки групп красит плагин
+   FBThemeUpdater: он ставит класс .tmb-role и цвет в --tmb-role.
+   ============================================================ */
+
+/* ники цветом роли — мягкое свечение, при наведении ярче */
+[class*="username_"][style*="color"],
+[class*="nameAndDecorators_"] [style*="color"] {
+  text-shadow: 0 0 10px color-mix(in srgb, currentColor 38%, transparent) !important;
+  transition: text-shadow 0.35s ease !important;
+}
+
+li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
+[class*="member_"]:hover [class*="username_"][style*="color"],
+[class*="member_"]:hover [class*="nameAndDecorators_"] [style*="color"] {
+  text-shadow:
+    0 0 6px color-mix(in srgb, currentColor 70%, transparent),
+    0 0 18px color-mix(in srgb, currentColor 40%, transparent) !important;
+}
+
+/* упоминания ролей @Роль — цветная таблетка */
+[class*="roleMention_"][style*="color"] {
+  padding: 0 5px !important;
+  border-radius: 6px !important;
+  background-color: color-mix(in srgb, currentColor 14%, transparent) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 38%, transparent);
+  text-shadow: 0 0 8px color-mix(in srgb, currentColor 50%, transparent);
+  transition: background-color 0.25s ease, box-shadow 0.3s ease !important;
+}
+
+[class*="roleMention_"][style*="color"]:hover {
+  background-color: color-mix(in srgb, currentColor 26%, transparent) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, currentColor 75%, transparent),
+    0 0 14px color-mix(in srgb, currentColor 35%, transparent);
+}
+
+/* точка роли светится своим цветом (работает и без плагина) */
+[class*="roleCircle_"],
+[class*="roleDot_"] {
+  position: relative;
+  z-index: 0;
+}
+
+[class*="roleCircle_"]::after,
+[class*="roleDot_"]::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(4px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+/* плашки ролей в профиле */
+.tmb-role {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background:
+    linear-gradient(90deg,
+      color-mix(in srgb, var(--tmb-role) 22%, transparent),
+      color-mix(in srgb, var(--tmb-role) 7%, transparent)) !important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--tmb-role) 42%, transparent),
+    0 0 12px -5px var(--tmb-role) !important;
+  transition: box-shadow 0.35s ease, transform 0.35s var(--tmb-spring) !important;
+}
+
+.tmb-role:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--tmb-role) 85%, transparent),
+    0 0 16px -3px var(--tmb-role) !important;
+}
+
+.tmb-role [class*="roleName_"],
+.tmb-role [class*="roleName_"] * {
+  color: color-mix(in srgb, var(--tmb-role) 60%, #ffffff) !important;
+}
+
+/* заголовки групп в списке участников («АДМИНИСТРАЦИЯ — 2») */
+.tmb-role-header,
+.tmb-role-header * {
+  color: var(--tmb-role) !important;
+  text-shadow: 0 0 10px color-mix(in srgb, var(--tmb-role) 55%, transparent);
+}
+
+.tmb-role-header::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin: 0 8px 1px 0;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--tmb-role);
+  box-shadow: 0 0 8px var(--tmb-role);
 }
 
 /* --- всплывающие окна, меню, подсказки --- */
