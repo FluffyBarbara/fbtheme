@@ -2,7 +2,7 @@
  * @name FBThemeUpdater
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.5.0
+ * @version 1.6.0
  * @description 🔄 Обновляет TokyoMidnightBlack, следит за чёрной темой Discord и подсвечивает роли их цветом.
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -95,7 +95,8 @@ module.exports = class FBThemeUpdater {
   startRoles() {
     if (this.roleObserver) return;
     this.roleObserver = new MutationObserver(() => this.queueRoles());
-    this.roleObserver.observe(document.body, { childList: true, subtree: true });
+    // characterData — чтобы ловить смену счётчика в заголовках групп
+    this.roleObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
     this.queueRoles();
   }
 
@@ -141,6 +142,63 @@ module.exports = class FBThemeUpdater {
     el.style.removeProperty("--tmb-role");
   }
 
+  // Цвета ролей текущего сервера: название роли → цвет. Кэш на 3 секунды.
+  guildRoleColors() {
+    const now = Date.now();
+    if (this.roleCache && now - this.roleCache.time < 3000) return this.roleCache.map;
+    const map = new Map();
+    try {
+      const W = BdApi.Webpack;
+      const guildId = W.getStore?.("SelectedGuildStore")?.getGuildId?.();
+      if (guildId) {
+        const roleStore = W.getStore?.("GuildRoleStore");
+        const guildStore = W.getStore?.("GuildStore");
+        const roles = roleStore?.getRolesSnapshot?.(guildId)
+          ?? roleStore?.getRoles?.(guildId)
+          ?? guildStore?.getRoles?.(guildId)
+          ?? guildStore?.getGuild?.(guildId)?.roles
+          ?? {};
+        for (const role of Object.values(roles)) {
+          const color = FBThemeUpdater.roleColor(role);
+          if (role?.name && color) map.set(role.name.trim().toLowerCase(), color);
+        }
+      }
+    } catch {}
+    this.roleCache = { time: now, map };
+    return map;
+  }
+
+  static roleColor(role) {
+    if (typeof role?.colorString === "string" && role.colorString) return role.colorString;
+    const num = role?.colors?.primary_color ?? role?.colors?.primaryColor ?? role?.color;
+    if (typeof num === "number" && num > 0) return "#" + num.toString(16).padStart(6, "0");
+    return null;
+  }
+
+  // Цвет, который у большинства участников группы (если группа не смешанная).
+  static majorityColor(header) {
+    let anchor = header;
+    while (!anchor.nextElementSibling && anchor.parentElement?.children.length === 1) anchor = anchor.parentElement;
+
+    const counts = new Map();
+    let total = 0;
+    for (let el = anchor.nextElementSibling; el && total < 15; el = el.nextElementSibling) {
+      if (el.matches('[class*="membersGroup_"]') || el.querySelector('[class*="membersGroup_"]')) break;
+      const name = el.querySelector('[class*="username_"]');
+      if (!name) continue;
+      const color = getComputedStyle(name).color;
+      counts.set(color, (counts.get(color) || 0) + 1);
+      total++;
+    }
+
+    let best = null;
+    let bestCount = 0;
+    for (const [color, count] of counts) {
+      if (count > bestCount) [best, bestCount] = [color, count];
+    }
+    return best && FBThemeUpdater.isRoleColor(best) && bestCount >= Math.ceil(total * 0.6) ? best : null;
+  }
+
   paintRoles() {
     try {
       // плашки ролей: маленький элемент с одной цветной точкой внутри
@@ -153,32 +211,24 @@ module.exports = class FBThemeUpdater {
         if (c && c.a > 0) FBThemeUpdater.mark(pill, "tmb-role", color);
       }
 
-      // заголовки групп: цвет, который у большинства участников группы
-      for (const header of document.querySelectorAll('[class*="membersWrap_"] [class*="membersGroup_"]')) {
-        let anchor = header;
-        while (!anchor.nextElementSibling && anchor.parentElement?.children.length === 1) anchor = anchor.parentElement;
+      // заголовки групп в списке участников: цвет роли из Discord по названию,
+      // а если не нашёлся — цвет большинства ников в группе
+      const roleColors = this.guildRoleColors();
+      for (const header of document.querySelectorAll('[class*="membersGroup_"]')) {
+        const text = (header.textContent || "").replace(/\s+/g, " ").trim();
+        const m = text.match(/^(.*?)\s*[—–-]\s*([\d\s]+)$/);
+        const name = (m ? m[1] : text).trim();
+        const count = m ? m[2].replace(/\s/g, "") : "";
+        const color = roleColors.get(name.toLowerCase()) || FBThemeUpdater.majorityColor(header);
 
-        const counts = new Map();
-        let total = 0;
-        for (let el = anchor.nextElementSibling; el && total < 15; el = el.nextElementSibling) {
-          if (el.matches('[class*="membersGroup_"]') || el.querySelector('[class*="membersGroup_"]')) break;
-          const name = el.querySelector('[class*="username_"]');
-          if (!name) continue;
-          const color = getComputedStyle(name).color;
-          counts.set(color, (counts.get(color) || 0) + 1);
-          total++;
-        }
-
-        let best = null;
-        let bestCount = 0;
-        for (const [color, count] of counts) {
-          if (count > bestCount) [best, bestCount] = [color, count];
-        }
-
-        if (best && FBThemeUpdater.isRoleColor(best) && bestCount >= Math.ceil(total * 0.6)) {
-          FBThemeUpdater.mark(header, "tmb-role-header", best);
+        if (color && name) {
+          FBThemeUpdater.mark(header, "tmb-role-header", color);
+          if (header.dataset.tmbName !== name) header.dataset.tmbName = name;
+          if (header.dataset.tmbCount !== count) header.dataset.tmbCount = count;
         } else {
           FBThemeUpdater.unmark(header, "tmb-role-header");
+          delete header.dataset.tmbName;
+          delete header.dataset.tmbCount;
         }
       }
     } catch (err) {
