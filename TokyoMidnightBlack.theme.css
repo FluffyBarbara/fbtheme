@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.8.2
+ * @version 1.9.0
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.8.2
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.9.0
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -5708,50 +5708,64 @@ li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
     0 0 14px color-mix(in srgb, currentColor 35%, transparent);
 }
 
-/* точка роли светится своим цветом (работает и без плагина) */
-[class*="roleCircle_"],
-[class*="roleDot_"] {
-  position: relative;
-  z-index: 0;
-}
+/* плашки ролей в профиле — неоновая обводка цвета роли.
+   Цвет берём с точки роли: её ::before и ::after растягиваются на всю
+   плашку и наследуют цвет точки (background-color: inherit). Плагин не нужен. */
 
-[class*="roleCircle_"]::after,
-[class*="roleDot_"]::after {
-  content: "";
-  position: absolute;
-  inset: -3px;
-  z-index: -1;
-  border-radius: 50%;
-  background: inherit;
-  filter: blur(4px);
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-/* плашки ролей в профиле */
-.tmb-role {
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) {
+  position: relative !important;
+  isolation: isolate;
+  overflow: visible !important;
   border: 0 !important;
   border-radius: 8px !important;
-  background:
-    linear-gradient(90deg,
-      color-mix(in srgb, var(--tmb-role) 22%, transparent),
-      color-mix(in srgb, var(--tmb-role) 7%, transparent)) !important;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--tmb-role) 42%, transparent),
-    0 0 12px -5px var(--tmb-role) !important;
-  transition: box-shadow 0.35s ease, transform 0.35s var(--tmb-spring) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  box-shadow: none !important;
+  transition: transform 0.35s var(--tmb-spring) !important;
 }
 
-.tmb-role:hover {
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]):hover {
   transform: translateY(-1px);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--tmb-role) 85%, transparent),
-    0 0 16px -3px var(--tmb-role) !important;
 }
 
-.tmb-role [class*="roleName_"],
-.tmb-role [class*="roleName_"] * {
-  color: color-mix(in srgb, var(--tmb-role) 60%, #ffffff) !important;
+/* всё между плашкой и точкой — без позиционирования,
+   чтобы слои точки легли на всю плашку */
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) > *:has(> [class*="roleCircle_"]),
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"] {
+  position: static !important;
+}
+
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::before,
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  background-color: inherit;
+}
+
+/* рамка цвета роли */
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::before {
+  inset: 0;
+  padding: 1px;
+  border-radius: 8px;
+  opacity: 0.9;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* мягкое свечение наружу */
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]) [class*="roleCircle_"]::after {
+  inset: -1px;
+  z-index: -1;
+  border-radius: 9px;
+  opacity: 0.28;
+  filter: blur(7px);
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+:is([role="listitem"], [class*="role_"]):has(> [class*="roleCircle_"], > * > [class*="roleCircle_"]):hover [class*="roleCircle_"]::after {
+  opacity: 0.5;
+  filter: blur(9px);
 }
 
 /* заголовки групп в списке участников («АДМИНИСТРАЦИЯ — 2») */
