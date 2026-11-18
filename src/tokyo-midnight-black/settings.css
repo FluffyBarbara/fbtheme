@@ -40,6 +40,14 @@
   --tmb-dot-speed-selected: 1.4s;  /* выбранный канал   */
   --tmb-dot-speed-unread: 2.2s;    /* непрочитанный     */
 
+  /* ─── Статусы ─────────────────────────────────────────── */
+
+  --tmb-status-online: #4ade80;
+  --tmb-status-idle: #fbbf24;
+  --tmb-status-dnd: #ff5a64;
+  --tmb-status-offline: #3a3a3a;
+  --tmb-status-stream: #b48cff;
+
   /* ─── Подсветка мута (микрофон и наушники) ────────────── */
 
   --tmb-mute-color: #ff5a64;

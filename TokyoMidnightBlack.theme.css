@@ -2,7 +2,7 @@
  * @name TokyoMidnightBlack
  * @author FluffyBarbara
  * @authorLink https://github.com/FluffyBarbara
- * @version 1.7.0
+ * @version 1.8.0
  * @description ⚫ Глубокий чёрный · ⚪ серебристые акценты · ✦ мигающие точки у каналов · ✨ плавные анимации
  * @source https://github.com/FluffyBarbara/fbtheme
  * @website https://github.com/FluffyBarbara/fbtheme
@@ -10,7 +10,7 @@
 
 /*
  *  ████████  ███    ███  ██████
- *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.7.0
+ *     ██     ████  ████  ██   ██     TokyoMidnightBlack  v1.8.0
  *     ██     ██ ████ ██  ██████      by FluffyBarbara
  *     ██     ██  ██  ██  ██   ██
  *     ██     ██      ██  ██████      Настройки — сразу ниже.
@@ -66,6 +66,14 @@
   --tmb-dot-size: 6px;
   --tmb-dot-speed-selected: 1.4s;  /* выбранный канал   */
   --tmb-dot-speed-unread: 2.2s;    /* непрочитанный     */
+
+  /* ─── Статусы ─────────────────────────────────────────── */
+
+  --tmb-status-online: #4ade80;
+  --tmb-status-idle: #fbbf24;
+  --tmb-status-dnd: #ff5a64;
+  --tmb-status-offline: #3a3a3a;
+  --tmb-status-stream: #b48cff;
 
   /* ─── Подсветка мута (микрофон и наушники) ────────────── */
 
@@ -5763,6 +5771,342 @@ li[id^="chat-messages-"] > div:hover [class*="username_"][style*="color"],
   vertical-align: middle;
   background: var(--tmb-role);
   box-shadow: 0 0 8px var(--tmb-role);
+}
+
+/* ============================================================
+   1. СТАТУСЫ СО СВЕЧЕНИЕМ
+   ============================================================ */
+
+@keyframes tmbStatusBreath {
+  0%, 100% { filter: drop-shadow(0 0 2px var(--tmb-status-online)); }
+  50%      { filter: drop-shadow(0 0 6px var(--tmb-status-online)) drop-shadow(0 0 10px var(--tmb-status-online)); }
+}
+
+rect[mask*="status-online"] {
+  fill: var(--tmb-status-online) !important;
+  animation: tmbStatusBreath 2.4s ease-in-out infinite;
+}
+rect[mask*="status-idle"] {
+  fill: var(--tmb-status-idle) !important;
+  filter: drop-shadow(0 0 4px var(--tmb-status-idle));
+}
+rect[mask*="status-dnd"] {
+  fill: var(--tmb-status-dnd) !important;
+  filter: drop-shadow(0 0 4px var(--tmb-status-dnd));
+}
+rect[mask*="status-streaming"] {
+  fill: var(--tmb-status-stream) !important;
+  filter: drop-shadow(0 0 4px var(--tmb-status-stream));
+}
+rect[mask*="status-offline"] {
+  fill: var(--tmb-status-offline) !important;
+  filter: none;
+}
+
+/* ============================================================
+   2. «ПЕЧАТАЕТ…» БЕЛЫМИ ТОЧКАМИ
+   ============================================================ */
+
+@keyframes tmbTypingHop {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30%           { transform: translateY(-3px); opacity: 1; }
+}
+
+[class*="typing_"] svg circle,
+[class*="typingDots"] circle {
+  fill: #ffffff !important;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px #ffffff);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tmbTypingHop 1.2s var(--tmb-ease) infinite !important;
+}
+[class*="typing_"] svg circle:nth-child(2),
+[class*="typingDots"] circle:nth-child(2) { animation-delay: 0.15s !important; }
+[class*="typing_"] svg circle:nth-child(3),
+[class*="typingDots"] circle:nth-child(3) { animation-delay: 0.3s !important; }
+
+[class*="typing_"] strong {
+  color: #ffffff !important;
+}
+
+/* ============================================================
+   3. СВЕТЯЩАЯСЯ ЛИНИЯ ОТВЕТА
+   ============================================================ */
+
+@keyframes tmbReplyGlow {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+[class*="repliedMessage_"]::before,
+[class*="repliedMessageClickableSpine_"] {
+  border-color: rgba(255, 255, 255, 0.75) !important;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+  animation: tmbReplyGlow 2.6s ease-in-out infinite;
+}
+
+/* ============================================================
+   4. ЛИНИЯ «НОВЫЕ СООБЩЕНИЯ»
+   ============================================================ */
+
+@keyframes tmbNewRun {
+  0%   { left: 0;   opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { left: 70%; opacity: 0; }
+}
+
+[class*="divider_"][class*="isUnread_"] {
+  position: relative;
+  border: none !important;
+  overflow: visible;
+}
+
+[class*="divider_"][class*="isUnread_"]::before {
+  content: "" !important;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent) !important;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+[class*="divider_"][class*="isUnread_"]::after {
+  content: "" !important;
+  position: absolute;
+  top: calc(50% - 1px);
+  width: 30%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #ffffff, transparent) !important;
+  filter: blur(1px);
+  pointer-events: none;
+  animation: tmbNewRun 2.4s ease-in-out infinite;
+}
+
+[class*="unreadPill_"] {
+  position: relative;
+  z-index: 1;
+  padding: 2px 9px !important;
+  border-radius: 99px !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+[class*="unreadPillCap"] {
+  display: none !important;
+}
+
+/* ============================================================
+   5. ПЛАШКА «В ЭФИРЕ»
+   ============================================================ */
+
+@keyframes tmbLiveDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.25; transform: scale(0.6); }
+}
+
+:is([class*="live_"], [class*="liveSmall_"], [class*="liveLarge_"], [class*="liveBadge_"])[class*="textBadge"],
+[class*="voiceUser_"] [class*="textBadge_"],
+[class*="liveSmall_"],
+[class*="liveLarge_"],
+[class*="liveBadge_"] {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px 2px 7px !important;
+  border-radius: 99px !important;
+  background: linear-gradient(90deg, #ff3355, #ff6b4a) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em;
+  box-shadow: 0 0 14px rgba(255, 60, 90, 0.55);
+}
+
+:is([class*="live_"], [class*="liveSmall_"], [class*="liveLarge_"], [class*="liveBadge_"])[class*="textBadge"]::before,
+[class*="voiceUser_"] [class*="textBadge_"]::before,
+[class*="liveSmall_"]::before,
+[class*="liveLarge_"]::before,
+[class*="liveBadge_"]::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+  animation: tmbLiveDot 1.2s ease-in-out infinite;
+}
+
+/* ============================================================
+   6. КАРТИНКИ И ВЛОЖЕНИЯ
+   ============================================================ */
+
+li[id^="chat-messages-"] :is([class*="imageWrapper_"], [class*="mosaicItem_"], [class*="embedVideo_"]) {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.5s var(--tmb-spring), box-shadow 0.5s var(--tmb-ease) !important;
+}
+
+li[id^="chat-messages-"] :is([class*="imageWrapper_"], [class*="mosaicItem_"], [class*="embedVideo_"]):hover {
+  transform: scale(1.03);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 16px 40px rgba(0, 0, 0, 0.6),
+    0 0 22px rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================================
+   7. ТОНКАЯ ПОЛОСА ПРОКРУТКИ
+   ============================================================ */
+
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"]) {
+  scrollbar-width: auto !important;
+  scrollbar-color: auto !important;
+}
+
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"])::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+  background: transparent !important;
+}
+
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"])::-webkit-scrollbar-track {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"])::-webkit-scrollbar-thumb {
+  min-height: 40px;
+  border: 2px solid transparent !important;
+  border-radius: 99px !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  background-clip: padding-box !important;
+}
+
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"]):hover::-webkit-scrollbar-thumb,
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"])::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffffff, #888888) !important;
+  background-clip: padding-box !important;
+}
+
+[class*="scrollerBase_"]:is([class*="thin_"], [class*="auto_"])::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* ============================================================
+   8. ВРЕМЯ ВЫЕЗЖАЕТ ПРИ НАВЕДЕНИИ
+   ============================================================ */
+
+li[id^="chat-messages-"] [class*="timestamp_"][class*="alt_"] {
+  opacity: 0 !important;
+  transform: translateX(-6px);
+  transition: opacity 0.3s ease, transform 0.4s var(--tmb-ease), text-shadow 0.3s ease !important;
+}
+
+li[id^="chat-messages-"]:hover [class*="timestamp_"][class*="alt_"] {
+  opacity: 1 !important;
+  transform: none;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+/* ============================================================
+   9. ЗНАЧКИ У СЕРВЕРОВ
+   ============================================================ */
+
+@keyframes tmbBadgePingRed {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 90, 100, 0.7); }
+  70%  { box-shadow: 0 0 0 9px rgba(255, 90, 100, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 90, 100, 0); }
+}
+
+@keyframes tmbBadgePingWhite {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.6); }
+  70%  { box-shadow: 0 0 0 9px rgba(255, 255, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+}
+
+[class*="numberBadge_"] {
+  background: var(--tmb-status-dnd) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  animation: tmbBadgePingRed 2s ease-out infinite !important;
+}
+
+[class*="textBadge_"]:not([class*="live"]):not([class*="voiceUser_"] [class*="textBadge_"]) {
+  background: #ffffff !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  animation: tmbBadgePingWhite 2s ease-out infinite;
+}
+
+nav[class*="guilds_"] [class*="pill_"] [class*="item_"] {
+  background: #ffffff !important;
+  box-shadow: 0 0 8px #ffffff, 0 0 14px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ============================================================
+   10. КНОПКИ С БЛИКОМ
+   ============================================================ */
+
+button:is([class*="lookFilled_"], [class*="button_"]) {
+  position: relative;
+  overflow: hidden;
+}
+
+/* главная — белая */
+button[class*="lookFilled_"][class*="colorBrand_"],
+button[class*="button_"][class*="primary_"]:not([class*="secondary"]):not([class*="critical"]):not([class*="danger"]) {
+  background: #ffffff !important;
+  color: #000000 !important;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* обычная — стеклянная */
+button[class*="lookFilled_"]:is([class*="colorPrimary_"], [class*="colorTransparent_"]),
+button[class*="button_"][class*="secondary_"] {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #eeeeee !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+}
+
+/* опасная — красная */
+button[class*="lookFilled_"]:is([class*="colorRed_"], [class*="colorDanger_"]),
+button[class*="button_"]:is([class*="critical"], [class*="danger"]) {
+  background: rgba(255, 90, 100, 0.14) !important;
+  color: var(--tmb-status-dnd) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 90, 100, 0.4) !important;
+}
+
+/* блик */
+button:is([class*="lookFilled_"], [class*="button_"])::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -70%;
+  width: 50%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s var(--tmb-ease);
+}
+
+button[class*="lookFilled_"][class*="colorBrand_"]::before,
+button[class*="button_"][class*="primary_"]:not([class*="secondary"]):not([class*="critical"]):not([class*="danger"])::before {
+  background: linear-gradient(100deg, transparent, rgba(0, 0, 0, 0.12), transparent);
+}
+
+button:is([class*="lookFilled_"], [class*="button_"]):hover::before {
+  left: 130%;
 }
 
 /* --- всплывающие окна, меню, подсказки --- */
